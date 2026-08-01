@@ -4,9 +4,12 @@ import build.wallet.bdk.bindings.BdkError
 import build.wallet.bdk.bindings.BdkIO
 import build.wallet.bdk.bindings.BdkScript
 import build.wallet.bdk.bindings.BdkUtxo
+import build.wallet.bdk.bindings.BdkKeychainKind
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
+import build.wallet.bitcoin.attestation.SpendingChildPath
+import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.bdk.*
 import build.wallet.bitcoin.fees.BitcoinFeeRateEstimator
@@ -28,10 +31,12 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import okio.ByteString.Companion.toByteString
 import uniffi.bdk.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import uniffi.bdk.Address as BdkV2Address
+import uniffi.bdk.KeychainKind as BdkV2KeychainKind
 import uniffi.bdk.Psbt as BdkV2Psbt
 import uniffi.bdk.Script as BdkV2Script
 import uniffi.bdk.Wallet as BdkV2Wallet
@@ -92,7 +97,7 @@ class SpendingWalletV2Impl(
 
   override suspend fun getNewAddress(): Result<BitcoinAddress, Error> {
     return catchingResult {
-      val addressInfo = bdkWallet.revealNextAddress(KeychainKind.EXTERNAL)
+      val addressInfo = bdkWallet.revealNextAddress(BdkV2KeychainKind.EXTERNAL)
       bdkWallet.persist(persister)
       BitcoinAddress(addressInfo.address.toString())
     }.mapError { SpendingWalletV2Error.AddressGenerationFailed(it) }
@@ -101,7 +106,7 @@ class SpendingWalletV2Impl(
 
   override suspend fun getNewAddressInfo(): Result<BitcoinAddressInfo, Error> {
     return catchingResult {
-      val addressInfo = bdkWallet.revealNextAddress(KeychainKind.EXTERNAL)
+      val addressInfo = bdkWallet.revealNextAddress(BdkV2KeychainKind.EXTERNAL)
       bdkWallet.persist(persister)
       BitcoinAddressInfo(
         address = BitcoinAddress(addressInfo.address.toString()),
@@ -113,7 +118,7 @@ class SpendingWalletV2Impl(
 
   override suspend fun peekAddress(index: UInt): Result<BitcoinAddress, Error> {
     return catchingResult {
-      val addressInfo = bdkWallet.peekAddress(KeychainKind.EXTERNAL, index)
+      val addressInfo = bdkWallet.peekAddress(BdkV2KeychainKind.EXTERNAL, index)
       BitcoinAddress(addressInfo.address.toString())
     }.mapError { SpendingWalletV2Error.AddressPeekFailed(index, it) }
       .logFailure { "BDK2 address retrieval failed (operation=peek)" }
@@ -121,11 +126,11 @@ class SpendingWalletV2Impl(
 
   override suspend fun revealAddress(index: UInt): Result<BitcoinAddress, Error> {
     return catchingResult {
-      val newlyRevealed = bdkWallet.revealAddressesTo(KeychainKind.EXTERNAL, index)
+      val newlyRevealed = bdkWallet.revealAddressesTo(BdkV2KeychainKind.EXTERNAL, index)
       if (newlyRevealed.isNotEmpty()) {
         bdkWallet.persist(persister)
       }
-      val addressInfo = bdkWallet.peekAddress(KeychainKind.EXTERNAL, index)
+      val addressInfo = bdkWallet.peekAddress(BdkV2KeychainKind.EXTERNAL, index)
       BitcoinAddress(addressInfo.address.toString())
     }.mapError { SpendingWalletV2Error.AddressRevealFailed(index, it) }
       .logFailure { "BDK2 address retrieval failed (operation=reveal)" }
@@ -134,7 +139,7 @@ class SpendingWalletV2Impl(
   // TODO: rename this to nextUnused when we remove legacy bdk impl
   override suspend fun getLastUnusedAddress(): Result<BitcoinAddress, Error> {
     return catchingResult {
-      val addressInfo = bdkWallet.nextUnusedAddress(KeychainKind.EXTERNAL)
+      val addressInfo = bdkWallet.nextUnusedAddress(BdkV2KeychainKind.EXTERNAL)
       bdkWallet.persist(persister)
       BitcoinAddress(addressInfo.address.toString())
     }.mapError { SpendingWalletV2Error.LastUnusedAddressFailed(it) }
@@ -153,6 +158,30 @@ class SpendingWalletV2Impl(
       val script = BdkV2Script(scriptPubKey.rawOutputScript.toUByteArray().toByteArray())
       bdkWallet.isMine(script)
     }.mapError { SpendingWalletV2Error.IsMineCheckFailed(it) }
+  }
+
+  override suspend fun listUsedScriptPubKeys(): Result<List<UsedScriptPubKey>, Error> {
+    return catchingResult {
+      val seen = linkedMapOf<Pair<BdkKeychainKind, UInt>, UsedScriptPubKey>()
+      for (output in bdkWallet.listOutput()) {
+        val keychain = output.keychain.toDomainKeychain()
+        val index = output.derivationIndex
+        val key = keychain to index
+        if (key in seen) continue
+
+        val script = output.txout.scriptPubkey
+        val scriptBytes = script.toBytes().toByteString()
+        val address = BdkV2Address.fromScript(script, networkType.bdkNetworkV2)
+        seen[key] = UsedScriptPubKey(
+          network = networkType,
+          address = BitcoinAddress(address.toString()),
+          scriptPubKey = scriptBytes,
+          path = SpendingChildPath(keychain = keychain, index = index)
+        )
+      }
+      seen.values.toList()
+    }.mapError { SpendingWalletV2Error.ListUsedScriptPubKeysFailed(it) }
+      .logFailure { "BDK2 listUsedScriptPubKeys failed" }
   }
 
   override fun balance(): Flow<BitcoinBalance> = balanceState.filterNotNull()
@@ -576,4 +605,11 @@ class SpendingWalletV2Impl(
     }
     return null
   }
+
+  private fun BdkV2KeychainKind.toDomainKeychain(): BdkKeychainKind =
+    when (this) {
+      BdkV2KeychainKind.EXTERNAL -> BdkKeychainKind.EXTERNAL
+      BdkV2KeychainKind.INTERNAL -> BdkKeychainKind.INTERNAL
+      else -> error("Unknown BDK2 keychain kind: $this")
+    }
 }

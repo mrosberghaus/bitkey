@@ -479,6 +479,11 @@ class SpendingWalletV2ImplTests : FunSpec({
     // NoPointer wallet causes BDK to fail, but it should not be an InvalidFeeRate error
     result.shouldBeErrOfType<BdkError>()
   }
+
+  test("listUsedScriptPubKeys returns empty when wallet has no outputs") {
+    val wallet = buildWallet(InitializationTestWallet(checkpointHeight = 1u))
+    wallet.listUsedScriptPubKeys().shouldBeOk().shouldBeEmpty()
+  }
 })
 
 private class InitializationTestWallet(
@@ -507,4 +512,6 @@ private class InitializationTestWallet(
   }
 
   override fun listUnspent(): List<LocalOutput> = emptyList()
+
+  override fun listOutput(): List<LocalOutput> = emptyList()
 }

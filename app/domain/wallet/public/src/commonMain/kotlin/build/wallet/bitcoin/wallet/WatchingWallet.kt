@@ -6,11 +6,13 @@ import build.wallet.bdk.bindings.BdkUtxo
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
+import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.fees.FeePolicy
 import build.wallet.bitcoin.transactions.BitcoinTransaction
 import build.wallet.bitcoin.transactions.BitcoinTransactionSendAmount
 import build.wallet.bitcoin.transactions.Psbt
+import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -91,6 +93,13 @@ interface WatchingWallet {
    * Checks if the scriptPubKey belongs to the [WatchingWallet]
    */
   suspend fun isMine(scriptPubKey: BdkScript): Result<Boolean, Error>
+
+  /**
+   * Distinct used scriptPubKeys (receive + change), deduped by keychain+index.
+   * Default Err; BDK2 wallets override. Legacy BDK1 has no list_output.
+   */
+  suspend fun listUsedScriptPubKeys(): Result<List<UsedScriptPubKey>, Error> =
+    Err(Error("listUsedScriptPubKeys is not supported by this wallet implementation"))
 
   /**
    * Emits the current balance of the wallet. The balance is pulled after every sync.

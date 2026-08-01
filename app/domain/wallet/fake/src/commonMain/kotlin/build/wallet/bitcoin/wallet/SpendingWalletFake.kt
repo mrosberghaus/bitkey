@@ -8,6 +8,7 @@ import build.wallet.bitcoin.BitcoinNetworkType.BITCOIN
 import build.wallet.bitcoin.BlockTime
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
+import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.fees.FeePolicy
 import build.wallet.bitcoin.transactions.BitcoinTransaction
@@ -187,6 +188,11 @@ class SpendingWalletFake(
   override suspend fun isMine(scriptPubKey: BdkScript): Result<Boolean, Error> {
     return Ok(scriptPubKey == BdkScriptMock().rawOutputScript)
   }
+
+  var usedScriptPubKeys: List<UsedScriptPubKey> = emptyList()
+
+  override suspend fun listUsedScriptPubKeys(): Result<List<UsedScriptPubKey>, Error> =
+    Ok(usedScriptPubKeys)
 
   override fun transactions(): Flow<List<BitcoinTransaction>> {
     return transactionHistoryState.filterNotNull()

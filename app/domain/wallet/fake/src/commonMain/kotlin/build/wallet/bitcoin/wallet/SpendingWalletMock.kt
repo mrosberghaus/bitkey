@@ -9,6 +9,7 @@ import build.wallet.bitcoin.BitcoinNetworkType.SIGNET
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
 import build.wallet.bitcoin.address.someBitcoinAddress
+import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.fees.Fee
 import build.wallet.bitcoin.fees.FeePolicy
@@ -97,6 +98,11 @@ class SpendingWalletMock(
     return isMineResult
   }
 
+  var listUsedScriptPubKeysResult: Result<List<UsedScriptPubKey>, Error> = Ok(emptyList())
+
+  override suspend fun listUsedScriptPubKeys(): Result<List<UsedScriptPubKey>, Error> =
+    listUsedScriptPubKeysResult
+
   var balanceFlow = MutableStateFlow<BitcoinBalance?>(null)
 
   override fun balance(): Flow<BitcoinBalance> = balanceFlow.filterNotNull()
@@ -133,6 +139,7 @@ class SpendingWalletMock(
     createPsbtResult = null
     createPsbtResults.clear()
     isMineResult = Ok(false)
+    listUsedScriptPubKeysResult = Ok(emptyList())
   }
 
   var createPsbtResult: Result<Psbt, Throwable>? = null

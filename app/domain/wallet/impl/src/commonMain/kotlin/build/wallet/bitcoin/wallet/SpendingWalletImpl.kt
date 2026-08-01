@@ -4,6 +4,7 @@ import build.wallet.bdk.bindings.*
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
+import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.bdk.*
 import build.wallet.bitcoin.fees.BitcoinFeeRateEstimator
@@ -142,6 +143,10 @@ class SpendingWalletImpl(
   override suspend fun isMine(scriptPubKey: BdkScript): Result<Boolean, Error> {
     return bdkWallet.isMine(scriptPubKey).result
   }
+
+  // TODO: list_output is BDK2-only; migrate callers when legacy BDK1 is removed.
+  override suspend fun listUsedScriptPubKeys(): Result<List<UsedScriptPubKey>, Error> =
+    Err(Error("listUsedScriptPubKeys requires BDK2 SpendingWalletV2Impl"))
 
   override fun balance(): Flow<BitcoinBalance> = balanceState.filterNotNull()
 

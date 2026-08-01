@@ -56,6 +56,11 @@ sealed class SpendingWalletV2Error : Error() {
   data class UnspentOutputsRetrievalFailed(override val cause: Throwable) : SpendingWalletV2Error()
 
   /**
+   * Failed to list used scriptPubKeys from wallet outputs.
+   */
+  data class ListUsedScriptPubKeysFailed(override val cause: Throwable) : SpendingWalletV2Error()
+
+  /**
    * Failed to sign a PSBT.
    */
   data class PsbtSigningFailed(override val cause: Throwable) : SpendingWalletV2Error()

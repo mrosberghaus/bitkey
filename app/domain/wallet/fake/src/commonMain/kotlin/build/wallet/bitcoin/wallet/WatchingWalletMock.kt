@@ -5,6 +5,7 @@ import build.wallet.bdk.bindings.BdkUtxo
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
+import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.fees.FeePolicy
 import build.wallet.bitcoin.transactions.BitcoinTransaction
@@ -36,6 +37,7 @@ class WatchingWalletMock(
   var createPsbtResult: Result<Psbt, Throwable>? = null,
   var balanceFlow: Flow<BitcoinBalance>? = null,
   var unspentOutputsFlow: Flow<List<BdkUtxo>>? = null,
+  var listUsedScriptPubKeysResult: Result<List<UsedScriptPubKey>, Error> = Ok(emptyList()),
 ) : WatchingWallet {
   override suspend fun initializeBalanceAndTransactions() {}
 
@@ -69,6 +71,9 @@ class WatchingWalletMock(
   override suspend fun isMine(scriptPubKey: BdkScript): Result<Boolean, Error> =
     Ok(scriptPubKey in myScripts)
 
+  override suspend fun listUsedScriptPubKeys(): Result<List<UsedScriptPubKey>, Error> =
+    listUsedScriptPubKeysResult
+
   override fun balance(): Flow<BitcoinBalance> =
     balanceFlow ?: error("balanceFlow not configured in WatchingWalletMock")
 
@@ -96,5 +101,6 @@ class WatchingWalletMock(
     createPsbtResult = null
     balanceFlow = null
     unspentOutputsFlow = null
+    listUsedScriptPubKeysResult = Ok(emptyList())
   }
 }
