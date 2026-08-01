@@ -7,10 +7,14 @@ use bitcoin::{
 };
 use thiserror::Error;
 
+use crate::signature_utils::CompactSignature;
+
 #[derive(Debug, Error)]
 pub enum SignatureVerifierError {
     #[error("Secp256k1 operation failed: {0}")]
     Secp256k1Error(#[from] Secp256k1Error),
+    #[error("Digest must be exactly 32 bytes")]
+    InvalidDigestLength,
 }
 
 pub struct SignatureVerifier(Mutex<Signature>);
@@ -34,6 +38,21 @@ impl SignatureVerifier {
 
         Ok(secp.verify_ecdsa(&message, &sig, &pubkey)?)
     }
+}
+
+/// Verify compact ECDSA over a pre-hashed 32-byte digest (no extra hash).
+pub fn verify_ecdsa_digest(
+    digest: &[u8],
+    signature: &CompactSignature,
+    pubkey: &[u8],
+) -> Result<(), SignatureVerifierError> {
+    let digest: [u8; 32] = digest
+        .try_into()
+        .map_err(|_| SignatureVerifierError::InvalidDigestLength)?;
+    let pubkey = PublicKey::from_slice(pubkey)?;
+    let sig = Signature::from_compact(signature.as_ref())?;
+    let message = Message::from_digest(digest);
+    Ok(Secp256k1::verification_only().verify_ecdsa(&message, &sig, &pubkey)?)
 }
 
 #[cfg(test)]
@@ -82,6 +101,32 @@ mod tests {
 
         assert!(matches!(
             verifier,
+            Err(SignatureVerifierError::Secp256k1Error(_))
+        ));
+    }
+
+    #[test]
+    fn test_verify_ecdsa_digest() {
+        let mut random_bytes = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut random_bytes);
+        let secret_key = SecretKey::from_slice(&random_bytes).unwrap();
+        let mut digest = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut digest);
+        let secp = Secp256k1::new();
+        let message = Message::from_digest(digest);
+        let signature = secp.sign_ecdsa(&message, &secret_key);
+        let compact = CompactSignature(signature.serialize_compact());
+        let pubkey = secret_key.public_key(&secp).serialize();
+
+        assert!(verify_ecdsa_digest(&digest, &compact, &pubkey).is_ok());
+        assert!(matches!(
+            verify_ecdsa_digest(&[0u8; 31], &compact, &pubkey),
+            Err(SignatureVerifierError::InvalidDigestLength)
+        ));
+        let mut bad_digest = digest;
+        bad_digest[0] ^= 1;
+        assert!(matches!(
+            verify_ecdsa_digest(&bad_digest, &compact, &pubkey),
             Err(SignatureVerifierError::Secp256k1Error(_))
         ));
     }

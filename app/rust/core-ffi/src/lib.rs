@@ -27,7 +27,9 @@ use crypto::signature_utils::{
     compact_signature_from_der, compact_signature_to_der, CompactSignature, DERSignature,
     SignatureUtilsError,
 };
-use crypto::signature_verifier::{SignatureVerifier, SignatureVerifierError};
+use crypto::signature_verifier::{
+    verify_ecdsa_digest, SignatureVerifier, SignatureVerifierError,
+};
 use crypto::spake2::{Spake2Context, Spake2Error, Spake2Keys, Spake2Role};
 use frost::{
     compute_frost_wallet_descriptor, FrostSigner, KeyCommitments, KeygenError, ShareDetails,

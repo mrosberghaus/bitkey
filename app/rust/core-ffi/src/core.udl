@@ -4,6 +4,8 @@ namespace core {
   DERSignature compact_signature_to_der([ByRef] CompactSignature compact_signature);
   [Throws=SignatureUtilsError]
   CompactSignature compact_signature_from_der([ByRef] DERSignature der_signature);
+  [Throws=SignatureVerifierError]
+  void verify_ecdsa_digest([ByRef] bytes digest, [ByRef] CompactSignature signature, [ByRef] bytes pubkey);
   [Throws=ChaincodeDelegationError]
   Psbt psbt_with_tweaks(Psbt psbt, DescriptorSecretKey app_account_dprv, ExtendedPubKey server_root_xpub, DescriptorPublicKey hw_dpub);
   [Throws=ChaincodeDelegationError]
@@ -44,6 +46,7 @@ interface XpubChaincodeError {
 [Error]
 enum SecretKeyError {
   "InvalidSecretBytes",
+  "InvalidDigestLength",
 };
 
 interface SecretKey {
@@ -51,6 +54,9 @@ interface SecretKey {
   constructor(sequence<u8> secret_bytes);
 
   Signature sign_message(sequence<u8> message);
+
+  [Throws=SecretKeyError]
+  CompactSignature sign_digest(sequence<u8> digest);
 
   PublicKey as_public();
 };
@@ -197,6 +203,7 @@ enum Spake2Role {
 [Error]
 enum SignatureVerifierError {
   "Secp256k1Error",
+  "InvalidDigestLength",
 };
 
 interface SignatureVerifier {

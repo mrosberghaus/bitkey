@@ -93,6 +93,7 @@ kotlin {
       dependencies {
         // Add JVM native library for JVM unit tests
         runtimeOnly(project(":rust:bdk-ffi", configuration = "jvmRuntimeElements"))
+        runtimeOnly(project(":rust:core-ffi", configuration = "jvmRuntimeElements"))
       }
     }
 

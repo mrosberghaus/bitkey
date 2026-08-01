@@ -8,6 +8,8 @@ use miniscript::descriptor::DescriptorXKey;
 use miniscript::DescriptorPublicKey;
 use std::sync::{Mutex, MutexGuard};
 
+use crate::signature_utils::CompactSignature;
+
 pub use bitcoin::secp256k1::PublicKey;
 
 #[derive(Debug, thiserror::Error)]
@@ -29,6 +31,8 @@ pub fn extract_public_key(
 pub enum SecretKeyError {
     #[error(transparent)]
     InvalidSecretBytes(#[from] BitcoinError),
+    #[error("Digest must be exactly 32 bytes")]
+    InvalidDigestLength,
 }
 
 pub struct SecretKey(Mutex<BitcoinSecretKey>);
@@ -49,6 +53,16 @@ impl SecretKey {
         let message = Message::from_digest(digest);
 
         Secp256k1::signing_only().sign_ecdsa(&message, &self.inner())
+    }
+
+    /// ECDSA-sign a pre-hashed 32-byte digest with no extra hash.
+    pub fn sign_digest(&self, digest: Vec<u8>) -> Result<CompactSignature, SecretKeyError> {
+        let digest: [u8; 32] = digest
+            .try_into()
+            .map_err(|_| SecretKeyError::InvalidDigestLength)?;
+        let message = Message::from_digest(digest);
+        let signature = Secp256k1::signing_only().sign_ecdsa(&message, &self.inner());
+        Ok(CompactSignature(signature.serialize_compact()))
     }
 
     pub fn as_public(&self) -> PublicKey {
@@ -93,6 +107,33 @@ mod tests {
         assert!(secp
             .verify_ecdsa(&hashed_message, &invalid_signature, &secret_key.as_public())
             .is_err());
+    }
+
+    #[test]
+    fn test_sign_digest_no_extra_hash() {
+        let mut random_bytes = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut random_bytes);
+        let secret_key = SecretKey::new(random_bytes.to_vec()).unwrap();
+        let mut digest = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut digest);
+
+        let compact = secret_key.sign_digest(digest.to_vec()).unwrap();
+        let signature = Signature::from_compact(compact.as_ref()).unwrap();
+        let secp = Secp256k1::verification_only();
+        let message = Message::from_digest(digest);
+        assert!(secp
+            .verify_ecdsa(&message, &signature, &secret_key.as_public())
+            .is_ok());
+
+        let wrong = secret_key.sign_message(digest.to_vec());
+        assert!(secp
+            .verify_ecdsa(&message, &wrong, &secret_key.as_public())
+            .is_err());
+
+        assert!(matches!(
+            secret_key.sign_digest(vec![0u8; 31]),
+            Err(SecretKeyError::InvalidDigestLength)
+        ));
     }
 
     #[quickcheck]
