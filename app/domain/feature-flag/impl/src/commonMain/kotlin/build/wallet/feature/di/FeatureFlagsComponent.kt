@@ -256,6 +256,11 @@ interface FeatureFlagsComponent {
     WipeOldW1DeviceFeatureFlag(featureFlagDao)
 
   @Provides
+  @SingleIn(AppScope::class)
+  fun addressAttestationFeatureFlag(featureFlagDao: FeatureFlagDao) =
+    AddressAttestationFeatureFlag(featureFlagDao)
+
+  @Provides
   fun featureFlags(
     asyncNfcSigningFeatureFlag: AsyncNfcSigningFeatureFlag,
     coachmarksGlobalFeatureFlag: CoachmarksGlobalFeatureFlag,
@@ -306,6 +311,7 @@ interface FeatureFlagsComponent {
     defaultBitcoinDisplayUnitFeatureFlag: DefaultBitcoinDisplayUnitFeatureFlag,
     wipeHardwareLoggedOutFeatureFlag: WipeHardwareLoggedOutFeatureFlag,
     wipeOldW1DeviceFeatureFlag: WipeOldW1DeviceFeatureFlag,
+    addressAttestationFeatureFlag: AddressAttestationFeatureFlag,
   ): List<FeatureFlag<out FeatureFlagValue>> {
     return listOf(
       bdk2FeatureFlag,
@@ -354,7 +360,8 @@ interface FeatureFlagsComponent {
       vaultsFeatureFlag,
       defaultBitcoinDisplayUnitFeatureFlag,
       wipeHardwareLoggedOutFeatureFlag,
-      wipeOldW1DeviceFeatureFlag
+      wipeOldW1DeviceFeatureFlag,
+      addressAttestationFeatureFlag
     )
   }
 }

@@ -79,6 +79,7 @@ class SettingsListUiStateMachineImpl(
             DebugMenu::class,
             UtxoConsolidation::class,
             ExportTools::class,
+            AddressAttestation::class,
             PrivateWalletMigration::class.takeIf {
               isMigrationAvailable
             }
@@ -141,6 +142,7 @@ class SettingsListUiStateMachineImpl(
         is UtxoConsolidation -> Pair(Consolidation, "UTXO Consolidation")
         is InheritanceManagement -> Pair(Inheritance, "Inheritance")
         is ExportTools -> Pair(Document, "Exports")
+        is AddressAttestation -> Pair(ShieldCheck, "Prove address")
         is PrivateWalletMigration -> Pair(Wallet, "Private Wallet Update")
       }
     val isRowEnabled = isRowEnabled(appFunctionalityStatus)
@@ -196,6 +198,7 @@ class SettingsListUiStateMachineImpl(
         appFunctionalityStatus.featureStates.helpCenter == Available
       is DebugMenu -> true
       is ExportTools -> appFunctionalityStatus.featureStates.exportTools == Available
+      is AddressAttestation -> appFunctionalityStatus.featureStates.exportTools == Available
       is UtxoConsolidation -> appFunctionalityStatus.featureStates.utxoConsolidation == Available
       is InheritanceManagement -> appFunctionalityStatus.featureStates.helpCenter == Available
       is PrivateWalletMigration -> appFunctionalityStatus.featureStates.securityAndRecovery == Available

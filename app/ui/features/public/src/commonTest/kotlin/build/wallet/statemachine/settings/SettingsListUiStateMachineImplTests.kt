@@ -41,6 +41,7 @@ class SettingsListUiStateMachineImplTests : FunSpec({
       TrustedContacts::class to turbines.create("TrustedContacts onClick calls"),
       RotateAuthKey::class to turbines.create("RotateAuthKey onClick calls"),
       InheritanceManagement::class to turbines.create("InheritanceManagement onClick calls"),
+      AddressAttestation::class to turbines.create("AddressAttestation onClick calls"),
       PrivateWalletMigration::class to turbines.create("PrivateWalletMigration onClick calls")
     )
 
@@ -59,6 +60,7 @@ class SettingsListUiStateMachineImplTests : FunSpec({
           RotateAuthKey { propsOnClickCalls[RotateAuthKey::class]?.add(Unit) },
           UtxoConsolidation { propsOnClickCalls[UtxoConsolidation::class]?.add(Unit) },
           InheritanceManagement { propsOnClickCalls[InheritanceManagement::class]?.add(Unit) },
+          AddressAttestation { propsOnClickCalls[AddressAttestation::class]?.add(Unit) },
           PrivateWalletMigration { propsOnClickCalls[PrivateWalletMigration::class]?.add(Unit) }
         ),
       onShowAlert = {},
@@ -94,7 +96,12 @@ class SettingsListUiStateMachineImplTests : FunSpec({
                 "Mobile Devices",
                 "Inheritance"
               ),
-              "Advanced" to listOf("Custom Electrum Server", "UTXO Consolidation", "Private Wallet Update"),
+              "Advanced" to listOf(
+                "Custom Electrum Server",
+                "UTXO Consolidation",
+                "Prove address",
+                "Private Wallet Update"
+              ),
               "Support" to listOf("Contact Us", "Help Center")
             )
           )
@@ -121,7 +128,11 @@ class SettingsListUiStateMachineImplTests : FunSpec({
               "Security & Recovery" to listOf(
                 "Recovery Contacts"
               ),
-              "Advanced" to listOf("Custom Electrum Server", "UTXO Consolidation"),
+              "Advanced" to listOf(
+                "Custom Electrum Server",
+                "UTXO Consolidation",
+                "Prove address"
+              ),
               "Support" to listOf("Contact Us", "Help Center")
             )
           )
@@ -191,6 +202,7 @@ class SettingsListUiStateMachineImplTests : FunSpec({
           "Notifications",
           "Mobile Devices",
           "Inheritance",
+          "Prove address",
           "Private Wallet Update",
           "Contact Us",
           "Help Center"
@@ -227,6 +239,7 @@ class SettingsListUiStateMachineImplTests : FunSpec({
           "Inheritance",
           "Custom Electrum Server",
           "UTXO Consolidation",
+          "Prove address",
           "Private Wallet Update",
           "Contact Us",
           "Help Center"

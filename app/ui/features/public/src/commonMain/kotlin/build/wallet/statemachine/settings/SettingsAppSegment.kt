@@ -11,4 +11,6 @@ object SettingsAppSegment : AppSegment {
   object Electrum : AppSegment by SettingsAppSegment.childSegment("Electrum")
 
   object Feedback : AppSegment by SettingsAppSegment.childSegment("Feedback")
+
+  object AddressAttestation : AppSegment by SettingsAppSegment.childSegment("AddressAttestation")
 }
