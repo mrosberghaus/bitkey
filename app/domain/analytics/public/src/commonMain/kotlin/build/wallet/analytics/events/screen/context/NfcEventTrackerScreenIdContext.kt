@@ -111,7 +111,7 @@ enum class NfcEventTrackerScreenIdContext : EventTrackerContext {
   /** NFC flow to get address from hardware for verification */
   ADDRESS_VERIFICATION,
 
-  /** NFC flow to confirm and sign a Bitkey-internal verification hash */
+  /** NFC flow to confirm and sign a BIP-322 prove-address sighash */
   BIP322_SIGHASH,
 
   /** NFC flow to build hardware descriptor for W3 devices during onboarding */

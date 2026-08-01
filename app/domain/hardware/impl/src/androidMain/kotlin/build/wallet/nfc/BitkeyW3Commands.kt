@@ -1173,7 +1173,7 @@ class BitkeyW3Commands(
   }
 
   /**
-   * Confirm address + message on W3, then sign the 32-byte verification-hash digest with the
+   * Confirm address + message on W3, then sign the 32-byte BIP-322 sighash with the
    * HW spending child at change/index. Two-tap confirmable protocol.
    */
   override suspend fun signBip322Sighash(
