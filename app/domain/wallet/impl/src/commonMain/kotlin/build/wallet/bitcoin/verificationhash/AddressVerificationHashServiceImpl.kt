@@ -1,0 +1,51 @@
+package build.wallet.bitcoin.verificationhash
+
+import build.wallet.di.AppScope
+import build.wallet.di.BitkeyInject
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.coroutines.coroutineBinding
+
+@BitkeyInject(AppScope::class)
+class AddressVerificationHashServiceImpl(
+  private val appSpendingDigestSigner: AppSpendingDigestSigner,
+) : AddressVerificationHashService {
+  override suspend fun create(
+    usedSpk: UsedScriptPubKey,
+    message: VerificationMessage,
+    hwSigner: HwVerificationHashSigner,
+  ): Result<AddressVerificationHash, Error> =
+    coroutineBinding {
+      val challenge = AddressVerificationChallenge.create(
+        network = usedSpk.network,
+        address = usedSpk.address,
+        scriptPubKey = usedSpk.scriptPubKey,
+        path = usedSpk.path,
+        message = message
+      )
+
+      val appSignature = appSpendingDigestSigner
+        .signDigest(digest = challenge.digest, path = usedSpk.path)
+        .bind()
+
+      val hwSignature = hwSigner
+        .sign(
+          digest = challenge.digest,
+          path = usedSpk.path,
+          address = usedSpk.address,
+          message = message
+        )
+        .bind()
+
+      AddressVerificationHash(
+        version = challenge.version,
+        network = challenge.network,
+        address = challenge.address,
+        scriptPubKey = challenge.scriptPubKey,
+        path = challenge.path,
+        message = challenge.message,
+        digest = challenge.digest,
+        appSignature = appSignature,
+        hwSignature = hwSignature
+      )
+    }
+}

@@ -7,12 +7,12 @@ import bitkey.ui.verification.TxVerificationPolicyStateMachine
 import build.wallet.bitkey.keybox.FullAccountMock
 import build.wallet.coroutines.turbine.turbines
 import build.wallet.feature.FeatureFlagDaoFake
-import build.wallet.feature.flags.AddressAttestationFeatureFlag
+import build.wallet.feature.flags.VerificationHashFeatureFlag
 import build.wallet.platform.config.AppVariant
 import build.wallet.statemachine.BodyStateMachineMock
 import build.wallet.statemachine.ScreenStateMachineMock
-import build.wallet.statemachine.addressattest.AddressAttestationUiProps
-import build.wallet.statemachine.addressattest.AddressAttestationUiStateMachine
+import build.wallet.statemachine.verificationhash.AddressVerificationHashUiProps
+import build.wallet.statemachine.verificationhash.AddressVerificationHashUiStateMachine
 import build.wallet.statemachine.core.test
 import build.wallet.statemachine.export.ExportToolsUiProps
 import build.wallet.statemachine.export.ExportToolsUiStateMachine
@@ -63,7 +63,7 @@ class SettingsHomeUiStateMachineImplTests : FunSpec({
     )
 
   val navigatorPresenter = NavigatorPresenterFake()
-  val addressAttestationFeatureFlag = AddressAttestationFeatureFlag(FeatureFlagDaoFake())
+  val verificationHashFeatureFlag = VerificationHashFeatureFlag(FeatureFlagDaoFake())
 
   fun stateMachine(appVariant: AppVariant = AppVariant.Customer) =
     SettingsHomeUiStateMachineImpl(
@@ -92,9 +92,9 @@ class SettingsHomeUiStateMachineImplTests : FunSpec({
         ScreenStateMachineMock<InheritanceManagementUiProps>("inheritance-management") {},
       exportToolsUiStateMachine = object : ExportToolsUiStateMachine,
         ScreenStateMachineMock<ExportToolsUiProps>("export-tools") {},
-      addressAttestationUiStateMachine = object : AddressAttestationUiStateMachine,
-        ScreenStateMachineMock<AddressAttestationUiProps>("address-attestation") {},
-      addressAttestationFeatureFlag = addressAttestationFeatureFlag,
+      addressVerificationHashUiStateMachine = object : AddressVerificationHashUiStateMachine,
+        ScreenStateMachineMock<AddressVerificationHashUiProps>("verification-hash") {},
+      verificationHashFeatureFlag = verificationHashFeatureFlag,
       transactionVerificationPolicyStateMachine = object : TxVerificationPolicyStateMachine,
         ScreenStateMachineMock<TxVerificationPolicyProps>(
           "tx-verification-policy"

@@ -1,6 +1,6 @@
 package build.wallet.nfc.interceptors
 
-import build.wallet.nfc.FakeHwAttestationDigestSignerStub
+import build.wallet.nfc.FakeHwVerificationHashDigestSignerStub
 import bitkey.account.AccountConfigServiceFake
 import bitkey.account.HardwareType
 import build.wallet.bitcoin.descriptor.BitcoinMultiSigDescriptorBuilderMock
@@ -178,6 +178,6 @@ private fun createW3CommandsFake(): Pair<BitkeyW1CommandsFake, BitkeyW3CommandsF
     fakeHardwareStatesDao = fakeHardwareStatesDao,
     messageSigner = stubMessageSigner,
     signatureUtils = stubSignatureUtils,
-    fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
+    fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
   )
 }

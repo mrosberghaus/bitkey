@@ -272,7 +272,7 @@ private open class RetryingNfcCommands(
       retry { commands.keysetRepairRotateHwKey(session, params) }
     )
 
-  override suspend fun signAddressAttestation(
+  override suspend fun signAddressVerificationHash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,
@@ -282,7 +282,7 @@ private open class RetryingNfcCommands(
   ): HardwareInteraction<ByteString> =
     wrapHardwareInteraction(
       retry {
-        commands.signAddressAttestation(
+        commands.signAddressVerificationHash(
           session = session,
           digest = digest,
           change = change,

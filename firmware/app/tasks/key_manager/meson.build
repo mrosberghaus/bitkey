@@ -33,7 +33,7 @@ key_manager_platform_configs = {
       'src/core/key_manager_task.c',
       'src/w3-core/key_manager_task_port.c',
       'src/w3-core/full_account_cloud_backup_restoration.c',
-      'src/w3-core/address_attestation.c',
+      'src/w3-core/address_verification_hash.c',
       'src/w3-core/eek_restoration.c',
       'src/w3-core/keyset_repair.c',
       'src/w3-core/lost_app_recovery.c',

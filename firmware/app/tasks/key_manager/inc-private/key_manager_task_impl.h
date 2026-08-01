@@ -75,7 +75,7 @@ void key_manager_task_handle_full_account_cloud_backup_restoration(ipc_ref_t* me
 void key_manager_task_handle_full_account_cloud_backup_restoration_continue(ipc_ref_t* message);
 void key_manager_task_handle_keyset_repair_unseal_symmetric_key(ipc_ref_t* message);
 void key_manager_task_handle_keyset_repair_rotate_hw_key(ipc_ref_t* message);
-void key_manager_task_handle_sign_address_attestation(ipc_ref_t* message);
+void key_manager_task_handle_sign_address_verification_hash(ipc_ref_t* message);
 
 // Derive a key at the given path and serialize as a 78-byte bare extended public key.
 // Optionally outputs the master fingerprint and/or derived extended public key

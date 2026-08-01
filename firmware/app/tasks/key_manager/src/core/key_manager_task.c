@@ -803,8 +803,8 @@ void key_manager_thread(void* UNUSED(args)) {
         key_manager_task_handle_keyset_repair_rotate_hw_key(&message);
         break;
       }
-      case IPC_PROTO_SIGN_ADDRESS_ATTESTATION_CMD: {
-        key_manager_task_handle_sign_address_attestation(&message);
+      case IPC_PROTO_SIGN_ADDRESS_VERIFICATION_HASH_CMD: {
+        key_manager_task_handle_sign_address_verification_hash(&message);
         break;
       }
       default:

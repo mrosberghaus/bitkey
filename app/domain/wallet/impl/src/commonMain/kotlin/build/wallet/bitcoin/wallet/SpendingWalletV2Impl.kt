@@ -8,8 +8,8 @@ import build.wallet.bdk.bindings.BdkKeychainKind
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.address.BitcoinAddressInfo
-import build.wallet.bitcoin.attestation.SpendingChildPath
-import build.wallet.bitcoin.attestation.UsedScriptPubKey
+import build.wallet.bitcoin.verificationhash.SpendingChildPath
+import build.wallet.bitcoin.verificationhash.UsedScriptPubKey
 import build.wallet.bitcoin.balance.BitcoinBalance
 import build.wallet.bitcoin.bdk.*
 import build.wallet.bitcoin.fees.BitcoinFeeRateEstimator

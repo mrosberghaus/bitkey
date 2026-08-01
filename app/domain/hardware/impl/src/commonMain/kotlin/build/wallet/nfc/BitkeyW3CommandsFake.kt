@@ -77,7 +77,7 @@ class BitkeyW3CommandsFake(
   private val fakeHardwareStatesDao: FakeHardwareStatesDao,
   private val messageSigner: MessageSigner,
   private val signatureUtils: SignatureUtils,
-  private val fakeHwAttestationDigestSigner: FakeHwAttestationDigestSigner,
+  private val fakeHwAttestationDigestSigner: FakeHwVerificationHashDigestSigner,
 ) : W3NfcCommands, HardwareIdentityAwareNfcCommands, NfcCommands by w1CommandsFake {
   /**
    * Creates a standard [HardwareInteraction.ConfirmWithEmulatedPrompt] with Approve/Deny options.
@@ -689,7 +689,7 @@ class BitkeyW3CommandsFake(
   /**
    * W3 hardware requires on-device confirmation for EEK restoration unseal.
    */
-  override suspend fun signAddressAttestation(
+  override suspend fun signAddressVerificationHash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,

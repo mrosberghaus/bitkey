@@ -87,8 +87,8 @@ pub enum ConfirmedCommandResult {
         spending_key_dpub: String,
         access_token_signature: Vec<u8>,
     },
-    /// 64-byte compact ECDSA over the attestation digest (no DER conversion).
-    SignAddressAttestation {
+    /// 64-byte compact ECDSA over the verification-hash digest (no DER conversion).
+    SignAddressVerificationHash {
         signature: Vec<u8>,
     },
 }
@@ -264,9 +264,9 @@ fn get_confirmation_result(
                         .to_vec(),
                 })
             }
-            Some(ConfirmationResult::SignAddressAttestationResult(rsp)) => {
+            Some(ConfirmationResult::SignAddressVerificationHashResult(rsp)) => {
                 let _ = compact_signature(&rsp.signature)?;
-                Ok(ConfirmedCommandResult::SignAddressAttestation {
+                Ok(ConfirmedCommandResult::SignAddressVerificationHash {
                     signature: rsp.signature,
                 })
             }

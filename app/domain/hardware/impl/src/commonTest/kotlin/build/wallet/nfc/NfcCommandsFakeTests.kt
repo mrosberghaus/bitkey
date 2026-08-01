@@ -140,7 +140,7 @@ class NfcCommandsFakeTests : FunSpec({
       fakeHardwareStatesDao = fakeHardwareStatesDao,
       messageSigner = messageSigner,
       signatureUtils = signatureUtils,
-      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
+      fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
     )
 
     test("W3 fake throws DescriptorNotLoaded before descriptor delivery") {
@@ -199,7 +199,7 @@ class NfcCommandsFakeTests : FunSpec({
       fakeHardwareStatesDao = fakeHardwareStatesDao,
       messageSigner = messageSigner,
       signatureUtils = signatureUtils,
-      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
+      fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
     )
 
     test("getAddress throws DescriptorNotLoaded when descriptor has not been delivered") {
@@ -237,7 +237,7 @@ class NfcCommandsFakeTests : FunSpec({
     }
   }
 
-  context("W3 signAddressAttestation") {
+  context("W3 signAddressVerificationHash") {
     val accountConfigService = AccountConfigServiceFake().also {
       runBlocking { it.setHardwareType(HardwareType.W3) }
     }
@@ -249,13 +249,13 @@ class NfcCommandsFakeTests : FunSpec({
       fakeHardwareStatesDao = fakeHardwareStatesDao,
       messageSigner = messageSigner,
       signatureUtils = signatureUtils,
-      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
+      fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
     )
     val digest = ByteArray(32) { (it + 1).toByte() }.toByteString()
 
     test("throws DescriptorNotLoaded before descriptor delivery") {
       shouldThrow<NfcException.DescriptorNotLoaded> {
-        w3Commands.signAddressAttestation(
+        w3Commands.signAddressVerificationHash(
           session = sessionFake,
           digest = digest,
           change = 0u,
@@ -268,7 +268,7 @@ class NfcCommandsFakeTests : FunSpec({
 
     test("returns ConfirmWithEmulatedPrompt after descriptor delivery") {
       w3Commands.deliverDescriptor(sessionFake)
-      val interaction = w3Commands.signAddressAttestation(
+      val interaction = w3Commands.signAddressVerificationHash(
         session = sessionFake,
         digest = digest,
         change = 0u,
@@ -283,7 +283,7 @@ class NfcCommandsFakeTests : FunSpec({
 
     test("W1 throws FeatureNotSupported") {
       shouldThrow<NfcException.FeatureNotSupported> {
-        nfcCommands.signAddressAttestation(
+        nfcCommands.signAddressVerificationHash(
           session = sessionFake,
           digest = digest,
           change = 0u,

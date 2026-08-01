@@ -12,5 +12,5 @@ object SettingsAppSegment : AppSegment {
 
   object Feedback : AppSegment by SettingsAppSegment.childSegment("Feedback")
 
-  object AddressAttestation : AppSegment by SettingsAppSegment.childSegment("AddressAttestation")
+  object VerificationHash : AppSegment by SettingsAppSegment.childSegment("VerificationHash")
 }

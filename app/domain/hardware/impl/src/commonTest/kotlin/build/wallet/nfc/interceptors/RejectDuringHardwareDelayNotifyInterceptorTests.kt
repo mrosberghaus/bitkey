@@ -1,6 +1,6 @@
 package build.wallet.nfc.interceptors
 
-import build.wallet.nfc.FakeHwAttestationDigestSignerStub
+import build.wallet.nfc.FakeHwVerificationHashDigestSignerStub
 import bitkey.account.AccountConfigServiceFake
 import bitkey.account.HardwareType
 import build.wallet.bitcoin.descriptor.BitcoinMultiSigDescriptorBuilderMock
@@ -67,7 +67,7 @@ class RejectDuringHardwareDelayNotifyInterceptorTests : FunSpec({
     fakeHardwareStatesDao = fakeHardwareStatesDao,
     messageSigner = messageSigner,
     signatureUtils = signatureUtils,
-    fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
+    fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
   )
 
   val recoveryStatusService = RecoveryStatusServiceFake()
