@@ -213,6 +213,18 @@ data class HardwareConfirmationContent(
       screenId = HardwareConfirmationEventTrackerScreenId.HW_CONFIRMATION_KEYSET_REPAIR_ROTATE_HW_KEY,
       canceledScreenId = HardwareConfirmationEventTrackerScreenId.HW_CONFIRMATION_CANCELED_KEYSET_REPAIR_ROTATE_HW_KEY
     )
+
+    /** Content for address attestation confirmation screens. */
+    val AddressAttestation = HardwareConfirmationContent(
+      title = "Review on your Bitkey",
+      body = "Confirm the address and message on device, then continue.",
+      confirmButtonText = "Continue",
+      cancelButtonText = "Cancel",
+      canceledTitle = "Proof canceled",
+      canceledBody = "Make sure you\u2019ve also canceled on your Bitkey.",
+      screenId = HardwareConfirmationEventTrackerScreenId.HW_CONFIRMATION_ADDRESS_ATTESTATION,
+      canceledScreenId = HardwareConfirmationEventTrackerScreenId.HW_CONFIRMATION_CANCELED_ADDRESS_ATTESTATION
+    )
   }
 }
 

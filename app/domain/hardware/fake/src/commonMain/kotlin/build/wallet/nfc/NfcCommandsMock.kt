@@ -24,6 +24,7 @@ import build.wallet.nfc.platform.*
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
 import okio.ByteString.Companion.encodeUtf8
+import okio.ByteString.Companion.toByteString
 
 open class NfcCommandsMock(
   turbine: ((String) -> Turbine<Any>),
@@ -390,6 +391,16 @@ open class NfcCommandsMock(
       )
     )
   }
+
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ): HardwareInteraction<ByteString> =
+    HardwareInteraction.Completed(ByteArray(64) { 0x42 }.toByteString())
 
   var fullAccountCloudBackupRestorationResult: CsekUnsealResult =
     CsekUnsealResult(index = 0, unsealedCsek = SymmetricKeyImpl("mock-unsealed-csek".encodeUtf8()))

@@ -77,6 +77,7 @@ class BitkeyW3CommandsFake(
   private val fakeHardwareStatesDao: FakeHardwareStatesDao,
   private val messageSigner: MessageSigner,
   private val signatureUtils: SignatureUtils,
+  private val fakeHwAttestationDigestSigner: FakeHwAttestationDigestSigner,
 ) : W3NfcCommands, HardwareIdentityAwareNfcCommands, NfcCommands by w1CommandsFake {
   /**
    * Creates a standard [HardwareInteraction.ConfirmWithEmulatedPrompt] with Approve/Deny options.
@@ -688,6 +689,43 @@ class BitkeyW3CommandsFake(
   /**
    * W3 hardware requires on-device confirmation for EEK restoration unseal.
    */
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ): HardwareInteraction<ByteString> {
+    if (!descriptorLoaded()) throw NfcException.DescriptorNotLoaded()
+    if (digest.size != 32) {
+      throw NfcException.CommandError(message = "Attestation digest must be 32 bytes")
+    }
+    if (change > 1u) {
+      throw NfcException.CommandError(message = "Attestation change must be 0 or 1")
+    }
+    val network = accountConfigService.defaultConfig().value.bitcoinNetworkType
+    return emulatedPrompt(
+      details = listOf(
+        EmulatedPromptOption.Detail("Action", "Prove address"),
+        EmulatedPromptOption.Detail("Address", address),
+        EmulatedPromptOption.Detail("Message", message.take(64))
+      ),
+      onApprove = { _, _ ->
+        val hwPub = HwSpendingPublicKey(
+          fakeHardwareKeyStore.getInitialSpendingKeypair(network).publicKey.key
+        )
+        fakeHwAttestationDigestSigner.sign(
+          hwPublicKey = hwPub,
+          network = network,
+          change = change,
+          addressIndex = addressIndex,
+          digest = digest
+        )
+      }
+    )
+  }
+
   override suspend fun eekRestorationUnsealSymmetricKey(
     session: NfcSession,
     sealedKey: SealedData,

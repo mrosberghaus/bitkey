@@ -371,3 +371,12 @@ void key_manager_task_handle_keyset_repair_rotate_hw_key(ipc_ref_t* message) {
   LOGE("W1 does not support keyset repair rotate hw key");
   proto_send_rsp(cmd, rsp);
 }
+
+void key_manager_task_handle_sign_address_attestation(ipc_ref_t* message) {
+  fwpb_wallet_cmd* cmd = proto_get_cmd((uint8_t*)message->object, message->length);
+  fwpb_wallet_rsp* rsp = proto_get_rsp();
+
+  rsp->status = fwpb_status_FEATURE_NOT_SUPPORTED;
+  LOGE("W1 does not support sign address attestation");
+  proto_send_rsp(cmd, rsp);
+}

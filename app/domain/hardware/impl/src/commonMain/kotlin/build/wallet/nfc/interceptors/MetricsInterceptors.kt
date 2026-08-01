@@ -330,6 +330,24 @@ private open class MetricsNfcCommands(
     commands.keysetRepairRotateHwKey(session, params)
   }
 
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ) = measure("signAddressAttestation") {
+    commands.signAddressAttestation(
+      session = session,
+      digest = digest,
+      change = change,
+      addressIndex = addressIndex,
+      address = address,
+      message = message
+    )
+  }
+
   override suspend fun getCert(
     session: NfcSession,
     certType: FirmwareCertType,

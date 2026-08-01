@@ -26,6 +26,7 @@ use wca::commands::{
     GetTxSignature, GetTxSignaturesBatch, GetUnlockMethod, InputSignatureTuple, LockDevice,
     LostAppRecovery, LostAppRecoveryContinue, LostAppRecoveryContinueResult, LostAppRecoveryResult,
     LostAppRecoverySignChallenge, LostAppRecoverySignChallengeResult, McuInfo, McuName, McuRole,
+    SignAddressAttestation, SignAddressAttestationResult,
     PartiallySignedTransaction, ProvisionAppAuthKey, QueryAuthentication, RecoveryAuthorizeLostApp,
     RecoveryAuthorizeLostAppResult, RecoveryAuthorizeLostHw, RecoveryAuthorizeLostHwResult,
     RotateAppAuthKeys, RotateAppAuthKeysResult, SecureBootConfig, SetFingerprintLabel,
@@ -86,6 +87,7 @@ type TxSignaturesBatchState = State<Vec<TxSignature>>;
 type LostAppRecoveryResultState = State<LostAppRecoveryResult>;
 type LostAppRecoveryContinueResultState = State<LostAppRecoveryContinueResult>;
 type LostAppRecoverySignChallengeResultState = State<LostAppRecoverySignChallengeResult>;
+type SignAddressAttestationResultState = State<SignAddressAttestationResult>;
 type RotateAppAuthKeysResultState = State<RotateAppAuthKeysResult>;
 type UpgradeRotateAppAuthKeysResultState = State<UpgradeRotateAppAuthKeysResult>;
 type SignChallengeAndSealSeksResultState = State<SignChallengeAndSealSeksResult>;

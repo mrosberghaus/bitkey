@@ -235,6 +235,12 @@ message display_params_privileged_action_confirm_string {
   string value = 1 [(nanopb).max_size = 128];
 }
 
+// Confirm Bitcoin address + attestation message (address pages, then message page).
+message display_params_privileged_action_confirm_address_attestation {
+  string address = 1 [(nanopb).max_size = 128];
+  string message = 2 [(nanopb).max_size = 281];
+}
+
 // Confirm action (e.g., wipe device)
 message display_params_privileged_action_confirm_action {
   display_privileged_action_type action_type = 1;
@@ -248,6 +254,7 @@ message display_params_privileged_action {
     display_params_privileged_action_confirm_address confirm_address = 2;
     display_params_privileged_action_confirm_string confirm_string = 3;
     display_params_privileged_action_confirm_action confirm_action = 5;
+    display_params_privileged_action_confirm_address_attestation confirm_address_attestation = 7;
   }
 
   // Previously used for privileged action fwup.

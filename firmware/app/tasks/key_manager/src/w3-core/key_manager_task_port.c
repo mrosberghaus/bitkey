@@ -1,3 +1,4 @@
+#include "address_attestation_impl.h"
 #include "bip32.h"
 #include "confirmation_manager.h"
 #include "display.pb.h"
@@ -1448,6 +1449,10 @@ void key_manager_task_handle_keyset_repair_rotate_hw_key(ipc_ref_t* message) {
   keyset_repair_rotate_hw_key_handle_init(message);
 }
 
+void key_manager_task_handle_sign_address_attestation(ipc_ref_t* message) {
+  address_attestation_handle_init(message);
+}
+
 void key_manager_task_register_listeners(void) {
   uc_route_register(fwpb_uxc_msg_device_secure_channel_response_tag,
                     _key_manager_task_handle_uxc_session_response, NULL);
@@ -1472,6 +1477,7 @@ void key_manager_task_register_listeners(void) {
   eek_restoration_register_handlers();
   full_account_cloud_backup_restoration_register_handlers();
   keyset_repair_register_handlers();
+  address_attestation_register_handlers();
 }
 
 // ---------------------------------------------------------------------------

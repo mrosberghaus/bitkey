@@ -223,6 +223,22 @@ internal abstract class DelegatingW3NfcCommands : W3NfcCommands {
     params: KeysetRepairRotateHwKeyParams,
   ) = delegatedCommands(session).keysetRepairRotateHwKey(session, params)
 
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ) = delegatedCommands(session).signAddressAttestation(
+    session = session,
+    digest = digest,
+    change = change,
+    addressIndex = addressIndex,
+    address = address,
+    message = message
+  )
+
   override suspend fun getCert(
     session: NfcSession,
     certType: FirmwareCertType,

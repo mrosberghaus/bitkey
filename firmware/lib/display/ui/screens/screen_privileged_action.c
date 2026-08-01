@@ -200,6 +200,12 @@ static int calculate_total_pages(const fwpb_display_params_privileged_action* pa
       content_pages = address_display_get_page_count(&temp_widget);
       break;
     }
+    case fwpb_display_params_privileged_action_confirm_address_attestation_tag: {
+      address_display_t temp_widget;
+      address_display_init(&temp_widget, params->action.confirm_address_attestation.address);
+      content_pages = address_display_get_page_count(&temp_widget) + 1;  // + message page
+      break;
+    }
     case fwpb_display_params_privileged_action_confirm_string_tag:
       content_pages = 1;
       break;
@@ -1020,6 +1026,23 @@ static void create_page_content(int page_index) {
       create_check_button(parent);
       break;
 
+    case fwpb_display_params_privileged_action_confirm_address_attestation_tag: {
+      int address_pages = address_display_get_page_count(&address_widget);
+      if (page_index < address_pages) {
+        address_display_create_page(parent, &address_widget, page_index);
+        align_address_page_between_header_and_check_button(parent, &address_widget, 0);
+        create_check_button(parent);
+      } else {
+        fwpb_display_params_privileged_action message_params = cached_params;
+        message_params.which_action = fwpb_display_params_privileged_action_confirm_string_tag;
+        strncpy(message_params.action.confirm_string.value,
+                cached_params.action.confirm_address_attestation.message,
+                sizeof(message_params.action.confirm_string.value) - 1);
+        create_string_page(parent, &message_params);
+      }
+      break;
+    }
+
     case fwpb_display_params_privileged_action_confirm_string_tag:
       create_string_page(parent, &cached_params);
       break;
@@ -1061,6 +1084,12 @@ lv_obj_t* screen_privileged_action_init(void* ctx) {
   switch (cached_params.which_action) {
     case fwpb_display_params_privileged_action_confirm_address_tag:
       address_display_init(&address_widget, cached_params.action.confirm_address.address);
+      address_display_set_bottom_reserved(&address_widget,
+                                          APPROVAL_BUTTON_SIZE + APPROVAL_BUTTON_BOTTOM_MARGIN);
+      break;
+    case fwpb_display_params_privileged_action_confirm_address_attestation_tag:
+      address_display_init(&address_widget,
+                           cached_params.action.confirm_address_attestation.address);
       address_display_set_bottom_reserved(&address_widget,
                                           APPROVAL_BUTTON_SIZE + APPROVAL_BUTTON_BOTTOM_MARGIN);
       break;

@@ -80,7 +80,8 @@ class SignTransactionW3IntegrationTests : FunSpec({
       fakeHardwareSpendingWalletProvider = fakeHardwareSpendingWalletProvider,
       fakeHardwareStatesDao = fakeHardwareStatesDao,
       messageSigner = messageSigner,
-      signatureUtils = signatureUtils
+      signatureUtils = signatureUtils,
+      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
     )
 
     fakeHardwareKeyStore.clear()

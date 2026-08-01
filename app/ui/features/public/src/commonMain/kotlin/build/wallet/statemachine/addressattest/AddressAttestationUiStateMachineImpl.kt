@@ -5,12 +5,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import build.wallet.analytics.events.screen.context.NfcEventTrackerScreenIdContext
 import build.wallet.analytics.events.screen.id.AddressAttestationEventTrackerScreenId
+import build.wallet.bdk.bindings.BdkKeychainKind
 import build.wallet.bitcoin.attestation.AddressAttestation
+import build.wallet.bitcoin.attestation.AddressAttestationChallenge
 import build.wallet.bitcoin.attestation.AddressAttestationService
 import build.wallet.bitcoin.attestation.AttestationMessage
 import build.wallet.bitcoin.attestation.AttestationMessageError
+import build.wallet.bitcoin.attestation.CompactEcdsaSignature
 import build.wallet.bitcoin.attestation.HwAttestationSigner
 import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.transactions.BitcoinWalletService
@@ -33,17 +38,25 @@ import build.wallet.statemachine.core.ErrorFormBodyModel
 import build.wallet.statemachine.core.LoadingSuccessBodyModel
 import build.wallet.statemachine.core.LoadingSuccessBodyModel.State.Loading
 import build.wallet.statemachine.core.ScreenModel
+import build.wallet.statemachine.core.ScreenPresentationStyle
+import build.wallet.statemachine.nfc.ConfirmationResultContent
+import build.wallet.statemachine.nfc.NfcConfirmableSessionUIStateMachineProps
+import build.wallet.statemachine.nfc.NfcConfirmableSessionUiStateMachine
+import build.wallet.statemachine.send.hardwareconfirmation.HardwareConfirmationContent
 import build.wallet.statemachine.settings.SettingsAppSegment
+import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getError
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
+import kotlinx.coroutines.launch
+import okio.ByteString
 
 @BitkeyInject(ActivityScope::class)
 class AddressAttestationUiStateMachineImpl(
   private val bitcoinWalletService: BitcoinWalletService,
   private val addressAttestationService: AddressAttestationService,
-  private val hwAttestationSigner: HwAttestationSigner,
+  private val nfcConfirmableSessionUiStateMachine: NfcConfirmableSessionUiStateMachine,
   private val sharingManager: SharingManager,
   private val clipboard: Clipboard,
 ) : AddressAttestationUiStateMachine {
@@ -129,43 +142,11 @@ class AddressAttestationUiStateMachineImpl(
         ).asRootScreen()
       }
 
-      is ConfirmOnHardware -> {
-        LaunchedEffect("attest-address") {
-          addressAttestationService
-            .attest(
-              usedSpk = current.usedSpk,
-              message = current.message,
-              hwSigner = hwAttestationSigner
-            )
-            .logFailure { "Address attestation failed" }
-            .onSuccess { attestation ->
-              state = Done(attestation = attestation)
-            }
-            .onFailure { error ->
-              state = ShowingError(
-                cause = error,
-                retry = EnterMessage(
-                  addresses = current.addresses,
-                  usedSpk = current.usedSpk,
-                  draft = current.message.value
-                )
-              )
-            }
-        }
-        LoadingSuccessBodyModel(
-          onBack = {
-            state = EnterMessage(
-              addresses = current.addresses,
-              usedSpk = current.usedSpk,
-              draft = current.message.value
-            )
-          },
-          state = Loading,
-          message = "Confirm on hardware",
-          description = "Hold your Bitkey near this phone to sign the attestation.",
-          id = AddressAttestationEventTrackerScreenId.CONFIRM_ON_HARDWARE
-        ).asRootScreen()
-      }
+      is ConfirmOnHardware -> confirmOnHardwareScreen(
+        props = props,
+        current = current,
+        setState = { state = it }
+      )
 
       is Done -> {
         val encodedHex = current.attestation.encode().hex()
@@ -206,6 +187,94 @@ class AddressAttestationUiStateMachineImpl(
     }
   }
 
+  @Composable
+  private fun confirmOnHardwareScreen(
+    props: AddressAttestationUiProps,
+    current: ConfirmOnHardware,
+    setState: (State) -> Unit,
+  ): ScreenModel {
+    val scope = rememberCoroutineScope()
+    val challenge = remember(current.usedSpk, current.message) {
+      AddressAttestationChallenge.create(
+        network = current.usedSpk.network,
+        address = current.usedSpk.address,
+        scriptPubKey = current.usedSpk.scriptPubKey,
+        path = current.usedSpk.path,
+        message = current.message
+      )
+    }
+    val change = remember(current.usedSpk.path.keychain) {
+      current.usedSpk.path.keychain.toChange()
+    }
+    val enterMessageRetry = EnterMessage(
+      addresses = current.addresses,
+      usedSpk = current.usedSpk,
+      draft = current.message.value
+    )
+
+    return nfcConfirmableSessionUiStateMachine.model(
+      NfcConfirmableSessionUIStateMachineProps(
+        session = { session, commands ->
+          commands.signAddressAttestation(
+            session = session,
+            digest = challenge.digest,
+            change = change,
+            addressIndex = current.usedSpk.path.index,
+            address = current.usedSpk.address.address,
+            message = current.message.value
+          )
+        },
+        onSuccess = { signatureBytes: ByteString ->
+          val hwSignature = CompactEcdsaSignature.create(signatureBytes).get()
+          if (hwSignature == null) {
+            setState(
+              ShowingError(
+                cause = Error("Invalid HW compact signature"),
+                retry = enterMessageRetry
+              )
+            )
+          } else {
+            val hwSigner = HwAttestationSigner { _, _, _, _ -> Ok(hwSignature) }
+            addressAttestationService
+              .attest(
+                usedSpk = current.usedSpk,
+                message = current.message,
+                hwSigner = hwSigner
+              )
+              .logFailure { "Address attestation failed after HW signature" }
+              .onSuccess { attestation ->
+                setState(Done(attestation = attestation))
+              }
+              .onFailure { error ->
+                setState(ShowingError(cause = error, retry = enterMessageRetry))
+              }
+          }
+        },
+        onCancel = {
+          setState(enterMessageRetry)
+        },
+        onError = { exception ->
+          scope.launch {
+            setState(ShowingError(cause = exception, retry = enterMessageRetry))
+          }
+          true
+        },
+        needsAuthentication = true,
+        shouldLock = true,
+        segment = SettingsAppSegment.AddressAttestation,
+        actionDescription = "Signing address attestation on hardware",
+        screenPresentationStyle = ScreenPresentationStyle.Root,
+        eventTrackerContext = NfcEventTrackerScreenIdContext.ADDRESS_ATTESTATION,
+        confirmationContent = HardwareConfirmationContent.AddressAttestation,
+        confirmationResultContent = ConfirmationResultContent(
+          pendingHeadline = "Review on Bitkey",
+          pendingSubline = "Confirm the address and message on your Bitkey, then tap again.",
+          deniedHeadline = "Address proof was not confirmed on your Bitkey"
+        )
+      )
+    )
+  }
+
   private fun messageValidationError(draft: String): String? {
     if (draft.isBlank()) return null
     return when (val error = AttestationMessage.create(draft).getError()) {
@@ -229,7 +298,6 @@ class AddressAttestationUiStateMachineImpl(
       val draft: String,
     ) : State
 
-    /** App + HW signing via [AddressAttestationService.attest]; NFC session lands later. */
     data class ConfirmOnHardware(
       val addresses: List<UsedScriptPubKey>,
       val usedSpk: UsedScriptPubKey,
@@ -244,3 +312,9 @@ class AddressAttestationUiStateMachineImpl(
     ) : State
   }
 }
+
+private fun BdkKeychainKind.toChange(): UInt =
+  when (this) {
+    BdkKeychainKind.EXTERNAL -> 0u
+    BdkKeychainKind.INTERNAL -> 1u
+  }

@@ -162,6 +162,11 @@ sealed interface ConfirmationResult {
   ) : ConfirmationResult
 
   /**
+   * 64-byte compact ECDSA over the address-attestation digest (spending child key).
+   */
+  data class SignAddressAttestation(val signature: List<UByte>) : ConfirmationResult
+
+  /**
    * User confirmed full account cloud backup restoration on the device.
    * The session is now ready for continuation commands with sealed CSEKs.
    */
@@ -768,6 +773,28 @@ interface NfcCommands {
     session: NfcSession,
     params: KeysetRepairRotateHwKeyParams,
   ): HardwareInteraction<KeysetRepairRotateHwKeyResult>
+
+  /**
+   * Confirm address + attestation message on device, then ECDSA-sign the provided
+   * 32-byte digest with the HW spending child at [change]/[addressIndex].
+   *
+   * W3: confirmable two-tap command. W1: [NfcException.FeatureNotSupported].
+   *
+   * @param digest prehashed 32-byte SHA-256 (no extra hash on device)
+   * @param change 0 = EXTERNAL (receive), 1 = INTERNAL (change)
+   * @param addressIndex BIP84 address index
+   * @param address Bitcoin address string shown on device (bind-checked on W3)
+   * @param message attestation message shown on device
+   * @return [HardwareInteraction] resolving to a 64-byte compact ECDSA signature
+   */
+  suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ): HardwareInteraction<ByteString>
 
   /**
    * Get the certificate for the hardware device.

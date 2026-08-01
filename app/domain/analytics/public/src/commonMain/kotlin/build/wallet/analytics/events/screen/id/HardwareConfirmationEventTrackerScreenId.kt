@@ -54,4 +54,8 @@ enum class HardwareConfirmationEventTrackerScreenId : EventTrackerScreenId {
   /** Stale keyset repair — rotate HW spending key + sign access token composite */
   HW_CONFIRMATION_KEYSET_REPAIR_ROTATE_HW_KEY,
   HW_CONFIRMATION_CANCELED_KEYSET_REPAIR_ROTATE_HW_KEY,
+
+  /** Address attestation prove-ownership flow */
+  HW_CONFIRMATION_ADDRESS_ATTESTATION,
+  HW_CONFIRMATION_CANCELED_ADDRESS_ATTESTATION,
 }

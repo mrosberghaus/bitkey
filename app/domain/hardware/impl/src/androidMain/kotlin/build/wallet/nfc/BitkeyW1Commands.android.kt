@@ -598,6 +598,15 @@ class BitkeyW1Commands(
       SymmetricKeyImpl(unsealData(session, sealedKey))
     )
 
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ): HardwareInteraction<ByteString> = throw NfcException.FeatureNotSupported()
+
   override suspend fun keysetRepairRotateHwKey(
     session: NfcSession,
     params: KeysetRepairRotateHwKeyParams,
@@ -796,6 +805,8 @@ class BitkeyW1Commands(
               spendingKeyDpub = result.spendingKeyDpub,
               accessTokenSignature = result.accessTokenSignature
             )
+          is ConfirmedCommandResult.SignAddressAttestation ->
+            ConfirmationResult.SignAddressAttestation(result.signature)
           is ConfirmedCommandResult.FullAccountCloudBackupRestoration ->
             ConfirmationResult.FullAccountCloudBackupRestoration
         }

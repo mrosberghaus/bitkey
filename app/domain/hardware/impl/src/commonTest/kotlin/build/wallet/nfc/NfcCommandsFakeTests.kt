@@ -21,13 +21,18 @@ import build.wallet.nfc.transaction.TransactionError
 import build.wallet.platform.random.uuid
 import build.wallet.sqldelight.inMemorySqlDriver
 import com.github.michaelbull.result.Ok
+import build.wallet.nfc.platform.HardwareInteraction
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.runBlocking
+import okio.ByteString
 import okio.ByteString.Companion.decodeHex
 import okio.ByteString.Companion.encodeUtf8
-import kotlinx.coroutines.runBlocking
+import okio.ByteString.Companion.toByteString
 
 /**
  * Helper to deliver the descriptor to a W3 fake, unblocking [getAddress] and [signTransaction].
@@ -134,7 +139,8 @@ class NfcCommandsFakeTests : FunSpec({
       fakeHardwareSpendingWalletProvider = fakeHardwareSpendingWalletProvider,
       fakeHardwareStatesDao = fakeHardwareStatesDao,
       messageSigner = messageSigner,
-      signatureUtils = signatureUtils
+      signatureUtils = signatureUtils,
+      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
     )
 
     test("W3 fake throws DescriptorNotLoaded before descriptor delivery") {
@@ -192,7 +198,8 @@ class NfcCommandsFakeTests : FunSpec({
       fakeHardwareSpendingWalletProvider = fakeHardwareSpendingWalletProvider,
       fakeHardwareStatesDao = fakeHardwareStatesDao,
       messageSigner = messageSigner,
-      signatureUtils = signatureUtils
+      signatureUtils = signatureUtils,
+      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
     )
 
     test("getAddress throws DescriptorNotLoaded when descriptor has not been delivered") {
@@ -227,6 +234,64 @@ class NfcCommandsFakeTests : FunSpec({
 
       // Now getAddress should work
       w3Commands.getAddress(sessionFake, 0u).shouldBeEqual("bc1q_fake_w3_0")
+    }
+  }
+
+  context("W3 signAddressAttestation") {
+    val accountConfigService = AccountConfigServiceFake().also {
+      runBlocking { it.setHardwareType(HardwareType.W3) }
+    }
+    val w3Commands = BitkeyW3CommandsFake(
+      w1CommandsFake = nfcCommands,
+      accountConfigService = accountConfigService,
+      fakeHardwareKeyStore = fakeHardwareKeyStore,
+      fakeHardwareSpendingWalletProvider = fakeHardwareSpendingWalletProvider,
+      fakeHardwareStatesDao = fakeHardwareStatesDao,
+      messageSigner = messageSigner,
+      signatureUtils = signatureUtils,
+      fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
+    )
+    val digest = ByteArray(32) { (it + 1).toByte() }.toByteString()
+
+    test("throws DescriptorNotLoaded before descriptor delivery") {
+      shouldThrow<NfcException.DescriptorNotLoaded> {
+        w3Commands.signAddressAttestation(
+          session = sessionFake,
+          digest = digest,
+          change = 0u,
+          addressIndex = 1u,
+          address = "bc1qtest",
+          message = "prove"
+        )
+      }
+    }
+
+    test("returns ConfirmWithEmulatedPrompt after descriptor delivery") {
+      w3Commands.deliverDescriptor(sessionFake)
+      val interaction = w3Commands.signAddressAttestation(
+        session = sessionFake,
+        digest = digest,
+        change = 0u,
+        addressIndex = 1u,
+        address = "bc1qtest",
+        message = "prove"
+      )
+      interaction.shouldBeInstanceOf<HardwareInteraction.ConfirmWithEmulatedPrompt<ByteString>>()
+      interaction.approve.shouldNotBeNull()
+      interaction.deny.shouldNotBeNull()
+    }
+
+    test("W1 throws FeatureNotSupported") {
+      shouldThrow<NfcException.FeatureNotSupported> {
+        nfcCommands.signAddressAttestation(
+          session = sessionFake,
+          digest = digest,
+          change = 0u,
+          addressIndex = 1u,
+          address = "bc1qtest",
+          message = "prove"
+        )
+      }
     }
   }
 })

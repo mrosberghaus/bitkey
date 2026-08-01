@@ -371,6 +371,12 @@ interface LostAppRecoverySignChallenge {
   LostAppRecoverySignChallengeResultState next(sequence<u8> response);
 };
 
+interface SignAddressAttestation {
+  constructor(sequence<u8> digest, u32 change, u32 address_index, string address, string message);
+  [Throws=CommandError]
+  SignAddressAttestationResultState next(sequence<u8> response);
+};
+
 interface RotateAppAuthKeys {
   constructor(u32 action_proof_version, string action, string? value, string bindings, string account_id, string app_global_auth_key);
   [Throws=CommandError]
@@ -558,6 +564,7 @@ interface ConfirmedCommandResult {
   FullAccountCloudBackupRestoration();
   KeysetRepairUnsealSymmetricKey(sequence<u8> unsealed_key);
   KeysetRepairRotateHwKey(string spending_key_dpub, sequence<u8> access_token_signature);
+  SignAddressAttestation(sequence<u8> signature);
 };
 
 [Enum]
@@ -856,6 +863,17 @@ interface LostAppRecoverySignChallengeResultState {
 [Enum]
 interface LostAppRecoverySignChallengeResult {
  ConfirmationPending(sequence<u8> response_handle, sequence<u8> confirmation_handle);
+};
+
+[Enum]
+interface SignAddressAttestationResultState {
+  Data(sequence<u8> response);
+  Result(SignAddressAttestationResult value);
+};
+
+[Enum]
+interface SignAddressAttestationResult {
+  ConfirmationPending(sequence<u8> response_handle, sequence<u8> confirmation_handle);
 };
 
 [Enum]

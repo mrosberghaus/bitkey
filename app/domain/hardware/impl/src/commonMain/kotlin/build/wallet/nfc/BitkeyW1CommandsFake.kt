@@ -372,6 +372,15 @@ class BitkeyW1CommandsFake(
       build.wallet.crypto.SymmetricKeyImpl(unsealData(session, sealedKey))
     )
 
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ): HardwareInteraction<ByteString> = throw NfcException.FeatureNotSupported()
+
   override suspend fun keysetRepairRotateHwKey(
     session: NfcSession,
     params: KeysetRepairRotateHwKeyParams,

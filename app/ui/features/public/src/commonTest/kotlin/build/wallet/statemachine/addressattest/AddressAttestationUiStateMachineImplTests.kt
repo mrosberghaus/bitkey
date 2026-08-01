@@ -5,7 +5,6 @@ import build.wallet.bdk.bindings.BdkKeychainKind
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
 import build.wallet.bitcoin.attestation.AddressAttestationServiceFake
-import build.wallet.bitcoin.attestation.HwAttestationSignerFake
 import build.wallet.bitcoin.attestation.SpendingChildPath
 import build.wallet.bitcoin.attestation.UsedScriptPubKey
 import build.wallet.bitcoin.transactions.BitcoinWalletServiceFake
@@ -18,7 +17,10 @@ import build.wallet.platform.sharing.SharingManagerFake
 import build.wallet.statemachine.core.LoadingSuccessBodyModel
 import build.wallet.statemachine.core.form.FormBodyModel
 import build.wallet.statemachine.core.test
+import build.wallet.statemachine.nfc.NfcConfirmableSessionUIStateMachineProps
+import build.wallet.statemachine.nfc.NfcConfirmableSessionUiStateMachineMock
 import build.wallet.statemachine.ui.awaitBody
+import build.wallet.statemachine.ui.awaitBodyMock
 import build.wallet.statemachine.ui.clickPrimaryButton
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
@@ -28,7 +30,9 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeTypeOf
+import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import okio.ByteString.Companion.toByteString
 
 class AddressAttestationUiStateMachineImplTests : FunSpec({
   val usedSpk = UsedScriptPubKey(
@@ -41,14 +45,16 @@ class AddressAttestationUiStateMachineImplTests : FunSpec({
   val spendingWallet = SpendingWalletMock(turbines::create)
   val bitcoinWalletService = BitcoinWalletServiceFake()
   val attestationService = AddressAttestationServiceFake()
-  val hwSigner = HwAttestationSignerFake()
+  val nfcConfirmableSessionUiStateMachine =
+    NfcConfirmableSessionUiStateMachineMock(id = "address-attestation-nfc")
   val sharingManager = SharingManagerFake()
   val clipboard = ClipboardMock()
+  val hwSignatureBytes: ByteString = ByteArray(64) { 0x42 }.toByteString()
 
   val stateMachine = AddressAttestationUiStateMachineImpl(
     bitcoinWalletService = bitcoinWalletService,
     addressAttestationService = attestationService,
-    hwAttestationSigner = hwSigner,
+    nfcConfirmableSessionUiStateMachine = nfcConfirmableSessionUiStateMachine,
     sharingManager = sharingManager,
     clipboard = clipboard
   )
@@ -64,11 +70,10 @@ class AddressAttestationUiStateMachineImplTests : FunSpec({
     spendingWallet.listUsedScriptPubKeysResult = Ok(listOf(usedSpk))
     bitcoinWalletService.spendingWallet.value = spendingWallet
     attestationService.reset()
-    hwSigner.signCount = 0
     clipboard.plainTextItemToReturn = null
   }
 
-  test("happy path: select address, enter message, attest, done with hex") {
+  test("happy path: select address, enter message, NFC sign, done with hex") {
     stateMachine.test(props) {
       awaitBody<LoadingSuccessBodyModel>()
       awaitBody<SelectUsedAddressBodyModel> {
@@ -82,8 +87,10 @@ class AddressAttestationUiStateMachineImplTests : FunSpec({
         message.shouldBe("prove ownership")
         clickPrimaryButton()
       }
-      awaitBody<LoadingSuccessBodyModel> {
-        message.shouldBe("Confirm on hardware")
+      awaitBodyMock<NfcConfirmableSessionUIStateMachineProps<ByteString>>(
+        id = "address-attestation-nfc"
+      ) {
+        onSuccess(hwSignatureBytes)
       }
       lateinit var expectedHex: String
       awaitBody<AddressAttestationDoneBodyModel> {
@@ -92,8 +99,7 @@ class AddressAttestationUiStateMachineImplTests : FunSpec({
         encodedHex.shouldNotBeBlank()
         expectedHex = encodedHex
         attestationService.attestCount.shouldBe(1)
-        hwSigner.signCount.shouldBe(1)
-        hwSigner.lastMessage?.value.shouldBe("prove ownership")
+        attestationService.lastMessage?.value.shouldBe("prove ownership")
         onCopy()
       }
       clipboard.getPlainTextItem()
@@ -138,7 +144,11 @@ class AddressAttestationUiStateMachineImplTests : FunSpec({
       awaitBody<EnterAttestationMessageBodyModel> {
         clickPrimaryButton()
       }
-      awaitBody<LoadingSuccessBodyModel>()
+      awaitBodyMock<NfcConfirmableSessionUIStateMachineProps<ByteString>>(
+        id = "address-attestation-nfc"
+      ) {
+        onSuccess(hwSignatureBytes)
+      }
       awaitBody<FormBodyModel> {
         header.shouldNotBeNull().headline.shouldBe("Couldn't prove address")
         primaryButton.shouldNotBeNull().onClick.invoke()

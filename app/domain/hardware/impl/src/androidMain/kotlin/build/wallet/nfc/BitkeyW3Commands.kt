@@ -29,6 +29,9 @@ import build.wallet.rust.firmware.BtcDisplayUnit as FfiBtcDisplayUnit
 import build.wallet.rust.firmware.BtcNetwork as FfiBtcNetwork
 import build.wallet.rust.firmware.InputSignatureTuple as FfiInputSignatureTuple
 import build.wallet.rust.firmware.KeysetRepairRotateHwKeyResult as FfiKeysetRepairRotateHwKeyResult
+import build.wallet.rust.firmware.SignAddressAttestation
+import build.wallet.rust.firmware.SignAddressAttestationResult
+import build.wallet.rust.firmware.SignAddressAttestationResultState
 import build.wallet.rust.firmware.RecoveryAuthorizeLostAppResult as FfiRecoveryAuthorizeLostAppResult
 import build.wallet.rust.firmware.RecoveryAuthorizeLostHwResult as FfiRecoveryAuthorizeLostHwResult
 import build.wallet.rust.firmware.RotateAppAuthKeys as FfiRotateAppAuthKeys
@@ -1161,6 +1164,60 @@ class BitkeyW3Commands(
                 throw NfcException.UserDenied()
               else -> throw NfcException.CommandError(
                 message = "keysetRepairRotateHwKey expected KeysetRepairRotateHwKey result but got: ${confirmResult::class.simpleName}"
+              )
+            }
+          }
+        )
+      }
+    }
+  }
+
+  /**
+   * Confirm address + message on W3, then sign the 32-byte attestation digest with the
+   * HW spending child at change/index. Two-tap confirmable protocol.
+   */
+  override suspend fun signAddressAttestation(
+    session: NfcSession,
+    digest: ByteString,
+    change: UInt,
+    addressIndex: UInt,
+    address: String,
+    message: String,
+  ): HardwareInteraction<ByteString> {
+    val result = executeCommand(
+      session = session,
+      generateCommand = {
+        SignAddressAttestation(
+          digest = digest.toUByteList(),
+          change = change,
+          addressIndex = addressIndex,
+          address = address,
+          message = message
+        )
+      },
+      getNext = { command, data -> command.next(data) },
+      getResponse = { state: SignAddressAttestationResultState.Data -> state.response },
+      generateResult = { state: SignAddressAttestationResultState.Result -> state.value }
+    )
+
+    return when (result) {
+      is SignAddressAttestationResult.ConfirmationPending -> {
+        val handles = ConfirmationHandles(
+          responseHandle = result.responseHandle,
+          confirmationHandle = result.confirmationHandle
+        )
+        HardwareInteraction.RequiresConfirmation(
+          handles = handles,
+          mapResult = confirmationResultMapper<ByteString> { confirmResult ->
+            when (confirmResult) {
+              is ConfirmationResult.SignAddressAttestation ->
+                HardwareInteraction.Completed(confirmResult.signature.toByteString())
+              is ConfirmationResult.Pending ->
+                throw NfcException.ConfirmationPending()
+              is ConfirmationResult.Denied ->
+                throw NfcException.UserDenied()
+              else -> throw NfcException.CommandError(
+                message = "signAddressAttestation expected SignAddressAttestation result but got: ${confirmResult::class.simpleName}"
               )
             }
           }

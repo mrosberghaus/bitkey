@@ -119,7 +119,8 @@ private fun TestConfiguration.testNfcCommandsProvider(): NfcCommandsProvider {
     fakeHardwareSpendingWalletProvider = fakeHardwareSpendingWalletProvider,
     fakeHardwareStatesDao = fakeHardwareStatesDao,
     messageSigner = messageSigner,
-    signatureUtils = signatureUtils
+    signatureUtils = signatureUtils,
+    fakeHwAttestationDigestSigner = FakeHwAttestationDigestSignerStub
   )
 
   return NfcCommandsProvider(

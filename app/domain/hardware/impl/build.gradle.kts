@@ -36,6 +36,9 @@ kotlin {
     val commonJvmMain by getting {
       dependencies {
         implementation(projects.domain.authPublic)
+        implementation(projects.rust.coreFfi)
+        implementation(projects.rust.bdkFfi)
+        implementation(projects.libs.bdkBindingsPublic)
       }
     }
     val jvmMain by getting {
