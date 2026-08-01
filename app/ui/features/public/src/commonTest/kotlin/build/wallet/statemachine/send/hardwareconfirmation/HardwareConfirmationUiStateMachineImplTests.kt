@@ -63,7 +63,7 @@ class HardwareConfirmationUiStateMachineImplTests : FunSpec({
       HardwareConfirmationContent.LostAppRecoverySignChallenge,
       HardwareConfirmationContent.EekRestorationUnseal,
       HardwareConfirmationContent.CloudBackupRestoration,
-      HardwareConfirmationContent.AddressVerificationHash,
+      HardwareConfirmationContent.ProveAddress,
     ).forEach { content ->
       stateMachine.test(props.copy(content = content)) {
         awaitBody<HardwareConfirmationScreenModel> {

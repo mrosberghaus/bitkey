@@ -29,9 +29,9 @@ import build.wallet.rust.firmware.BtcDisplayUnit as FfiBtcDisplayUnit
 import build.wallet.rust.firmware.BtcNetwork as FfiBtcNetwork
 import build.wallet.rust.firmware.InputSignatureTuple as FfiInputSignatureTuple
 import build.wallet.rust.firmware.KeysetRepairRotateHwKeyResult as FfiKeysetRepairRotateHwKeyResult
-import build.wallet.rust.firmware.SignAddressVerificationHash
-import build.wallet.rust.firmware.SignAddressVerificationHashResult
-import build.wallet.rust.firmware.SignAddressVerificationHashResultState
+import build.wallet.rust.firmware.SignBip322Sighash
+import build.wallet.rust.firmware.SignBip322SighashResult
+import build.wallet.rust.firmware.SignBip322SighashResultState
 import build.wallet.rust.firmware.RecoveryAuthorizeLostAppResult as FfiRecoveryAuthorizeLostAppResult
 import build.wallet.rust.firmware.RecoveryAuthorizeLostHwResult as FfiRecoveryAuthorizeLostHwResult
 import build.wallet.rust.firmware.RotateAppAuthKeys as FfiRotateAppAuthKeys
@@ -1176,7 +1176,7 @@ class BitkeyW3Commands(
    * Confirm address + message on W3, then sign the 32-byte verification-hash digest with the
    * HW spending child at change/index. Two-tap confirmable protocol.
    */
-  override suspend fun signAddressVerificationHash(
+  override suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,
@@ -1187,7 +1187,7 @@ class BitkeyW3Commands(
     val result = executeCommand(
       session = session,
       generateCommand = {
-        SignAddressVerificationHash(
+        SignBip322Sighash(
           digest = digest.toUByteList(),
           change = change,
           addressIndex = addressIndex,
@@ -1196,12 +1196,12 @@ class BitkeyW3Commands(
         )
       },
       getNext = { command, data -> command.next(data) },
-      getResponse = { state: SignAddressVerificationHashResultState.Data -> state.response },
-      generateResult = { state: SignAddressVerificationHashResultState.Result -> state.value }
+      getResponse = { state: SignBip322SighashResultState.Data -> state.response },
+      generateResult = { state: SignBip322SighashResultState.Result -> state.value }
     )
 
     return when (result) {
-      is SignAddressVerificationHashResult.ConfirmationPending -> {
+      is SignBip322SighashResult.ConfirmationPending -> {
         val handles = ConfirmationHandles(
           responseHandle = result.responseHandle,
           confirmationHandle = result.confirmationHandle
@@ -1210,14 +1210,14 @@ class BitkeyW3Commands(
           handles = handles,
           mapResult = confirmationResultMapper<ByteString> { confirmResult ->
             when (confirmResult) {
-              is ConfirmationResult.SignAddressVerificationHash ->
+              is ConfirmationResult.SignBip322Sighash ->
                 HardwareInteraction.Completed(confirmResult.signature.toByteString())
               is ConfirmationResult.Pending ->
                 throw NfcException.ConfirmationPending()
               is ConfirmationResult.Denied ->
                 throw NfcException.UserDenied()
               else -> throw NfcException.CommandError(
-                message = "signAddressVerificationHash expected SignAddressVerificationHash result but got: ${confirmResult::class.simpleName}"
+                message = "signBip322Sighash expected SignBip322Sighash result but got: ${confirmResult::class.simpleName}"
               )
             }
           }

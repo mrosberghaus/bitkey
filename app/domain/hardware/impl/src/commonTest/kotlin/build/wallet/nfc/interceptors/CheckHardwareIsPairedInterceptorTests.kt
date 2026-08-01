@@ -1,6 +1,6 @@
 package build.wallet.nfc.interceptors
 
-import build.wallet.nfc.FakeHwVerificationHashDigestSignerStub
+import build.wallet.nfc.FakeHwBip322SighashSignerStub
 import bitkey.account.AccountConfigServiceFake
 import bitkey.account.HardwareType
 import build.wallet.bitcoin.descriptor.BitcoinMultiSigDescriptorBuilderMock
@@ -68,7 +68,7 @@ class CheckHardwareIsPairedInterceptorTests : FunSpec({
     fakeHardwareStatesDao = fakeHardwareStatesDao,
     messageSigner = messageSigner,
     signatureUtils = signatureUtils,
-    fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
+    fakeHwBip322SighashSigner = FakeHwBip322SighashSignerStub
   )
 
   val firmwareDeviceInfoDao = FirmwareDeviceInfoDaoFake()

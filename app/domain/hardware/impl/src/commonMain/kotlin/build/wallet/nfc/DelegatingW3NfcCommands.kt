@@ -223,14 +223,14 @@ internal abstract class DelegatingW3NfcCommands : W3NfcCommands {
     params: KeysetRepairRotateHwKeyParams,
   ) = delegatedCommands(session).keysetRepairRotateHwKey(session, params)
 
-  override suspend fun signAddressVerificationHash(
+  override suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,
     addressIndex: UInt,
     address: String,
     message: String,
-  ) = delegatedCommands(session).signAddressVerificationHash(
+  ) = delegatedCommands(session).signBip322Sighash(
     session = session,
     digest = digest,
     change = change,

@@ -4,7 +4,6 @@ import build.wallet.account.AccountService
 import build.wallet.account.getAccount
 import build.wallet.bdk.bindings.BdkKeychainKind
 import build.wallet.bitcoin.keys.DescriptorPublicKey
-import build.wallet.bitcoin.verificationhash.SpendingChildPath
 import build.wallet.bitkey.account.FullAccount
 import build.wallet.catchingResult
 import build.wallet.di.AppScope

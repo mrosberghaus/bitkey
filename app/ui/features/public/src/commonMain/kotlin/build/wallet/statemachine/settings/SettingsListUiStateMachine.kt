@@ -53,7 +53,7 @@ data class SettingsListUiProps(
 
     data class ExportTools(override val onClick: () -> Unit) : SettingsListRow
 
-    data class VerificationHash(override val onClick: () -> Unit) : SettingsListRow
+    data class ProveAddress(override val onClick: () -> Unit) : SettingsListRow
 
     data class PrivateWalletMigration(override val onClick: () -> Unit) : SettingsListRow
   }

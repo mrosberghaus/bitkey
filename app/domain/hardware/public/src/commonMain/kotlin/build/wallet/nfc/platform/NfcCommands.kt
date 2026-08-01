@@ -162,9 +162,9 @@ sealed interface ConfirmationResult {
   ) : ConfirmationResult
 
   /**
-   * 64-byte compact ECDSA over the address verification-hash digest (spending child key).
+   * 64-byte compact ECDSA over a BIP-322 sighash (spending child key).
    */
-  data class SignAddressVerificationHash(val signature: List<UByte>) : ConfirmationResult
+  data class SignBip322Sighash(val signature: List<UByte>) : ConfirmationResult
 
   /**
    * User confirmed full account cloud backup restoration on the device.
@@ -775,19 +775,19 @@ interface NfcCommands {
   ): HardwareInteraction<KeysetRepairRotateHwKeyResult>
 
   /**
-   * Confirm address + verification message on device, then ECDSA-sign the provided
-   * 32-byte digest with the HW spending child at [change]/[addressIndex].
+   * Confirm address + message on device, then ECDSA-sign the provided
+   * 32-byte BIP-322 sighash with the HW spending child at [change]/[addressIndex].
    *
    * W3: confirmable two-tap command. W1: [NfcException.FeatureNotSupported].
    *
-   * @param digest prehashed 32-byte SHA-256 (no extra hash on device)
+   * @param digest BIP-322 sighash (32 bytes; no extra hash on device)
    * @param change 0 = EXTERNAL (receive), 1 = INTERNAL (change)
    * @param addressIndex BIP84 address index
    * @param address Bitcoin address string shown on device (bind-checked on W3)
-   * @param message verification message shown on device
+   * @param message prove-address message shown on device
    * @return [HardwareInteraction] resolving to a 64-byte compact ECDSA signature
    */
-  suspend fun signAddressVerificationHash(
+  suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,

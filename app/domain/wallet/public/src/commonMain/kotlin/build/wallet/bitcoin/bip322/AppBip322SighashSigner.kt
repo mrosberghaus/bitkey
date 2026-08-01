@@ -1,7 +1,5 @@
 package build.wallet.bitcoin.bip322
 
-import build.wallet.bitcoin.verificationhash.CompactEcdsaSignature
-import build.wallet.bitcoin.verificationhash.SpendingChildPath
 import com.github.michaelbull.result.Result
 
 /**

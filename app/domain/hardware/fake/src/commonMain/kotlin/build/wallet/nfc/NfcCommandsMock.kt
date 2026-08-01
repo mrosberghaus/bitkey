@@ -392,7 +392,7 @@ open class NfcCommandsMock(
     )
   }
 
-  override suspend fun signAddressVerificationHash(
+  override suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,

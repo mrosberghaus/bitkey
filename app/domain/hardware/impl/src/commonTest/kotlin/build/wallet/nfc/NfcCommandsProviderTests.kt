@@ -56,7 +56,7 @@ class NfcCommandsProviderTests : FunSpec({
     fakeHardwareStatesDao = fakeHardwareStatesDao,
     messageSigner = messageSigner,
     signatureUtils = signatureUtils,
-    fakeHwAttestationDigestSigner = FakeHwVerificationHashDigestSignerStub
+    fakeHwBip322SighashSigner = FakeHwBip322SighashSignerStub
   )
 
   val provider = NfcCommandsProvider(realW1, realW3, fakeW1, fakeW3)

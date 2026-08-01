@@ -598,7 +598,7 @@ class BitkeyW1Commands(
       SymmetricKeyImpl(unsealData(session, sealedKey))
     )
 
-  override suspend fun signAddressVerificationHash(
+  override suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,
@@ -805,8 +805,8 @@ class BitkeyW1Commands(
               spendingKeyDpub = result.spendingKeyDpub,
               accessTokenSignature = result.accessTokenSignature
             )
-          is ConfirmedCommandResult.SignAddressVerificationHash ->
-            ConfirmationResult.SignAddressVerificationHash(result.signature)
+          is ConfirmedCommandResult.SignBip322Sighash ->
+            ConfirmationResult.SignBip322Sighash(result.signature)
           is ConfirmedCommandResult.FullAccountCloudBackupRestoration ->
             ConfirmationResult.FullAccountCloudBackupRestoration
         }

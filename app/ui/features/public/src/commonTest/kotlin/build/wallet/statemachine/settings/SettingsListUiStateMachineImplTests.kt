@@ -41,7 +41,7 @@ class SettingsListUiStateMachineImplTests : FunSpec({
       TrustedContacts::class to turbines.create("TrustedContacts onClick calls"),
       RotateAuthKey::class to turbines.create("RotateAuthKey onClick calls"),
       InheritanceManagement::class to turbines.create("InheritanceManagement onClick calls"),
-      VerificationHash::class to turbines.create("VerificationHash onClick calls"),
+      ProveAddress::class to turbines.create("ProveAddress onClick calls"),
       PrivateWalletMigration::class to turbines.create("PrivateWalletMigration onClick calls")
     )
 
@@ -60,7 +60,7 @@ class SettingsListUiStateMachineImplTests : FunSpec({
           RotateAuthKey { propsOnClickCalls[RotateAuthKey::class]?.add(Unit) },
           UtxoConsolidation { propsOnClickCalls[UtxoConsolidation::class]?.add(Unit) },
           InheritanceManagement { propsOnClickCalls[InheritanceManagement::class]?.add(Unit) },
-          VerificationHash { propsOnClickCalls[VerificationHash::class]?.add(Unit) },
+          ProveAddress { propsOnClickCalls[ProveAddress::class]?.add(Unit) },
           PrivateWalletMigration { propsOnClickCalls[PrivateWalletMigration::class]?.add(Unit) }
         ),
       onShowAlert = {},

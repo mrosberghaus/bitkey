@@ -8,10 +8,10 @@ import bitkey.ui.verification.TxVerificationPolicyStateMachine
 import build.wallet.bitkey.account.FullAccount
 import build.wallet.di.ActivityScope
 import build.wallet.di.BitkeyInject
-import build.wallet.feature.flags.VerificationHashFeatureFlag
+import build.wallet.feature.flags.ProveAddressFeatureFlag
 import build.wallet.platform.config.AppVariant
-import build.wallet.statemachine.verificationhash.AddressVerificationHashUiProps
-import build.wallet.statemachine.verificationhash.AddressVerificationHashUiStateMachine
+import build.wallet.statemachine.proveaddress.ProveAddressUiProps
+import build.wallet.statemachine.proveaddress.ProveAddressUiStateMachine
 import build.wallet.statemachine.biometric.BiometricSettingScreen
 import build.wallet.statemachine.cloud.health.CloudBackupHealthDashboardScreen
 import build.wallet.statemachine.core.ScreenModel
@@ -63,8 +63,8 @@ class SettingsHomeUiStateMachineImpl(
   private val utxoConsolidationUiStateMachine: UtxoConsolidationUiStateMachine,
   private val inheritanceManagementUiStateMachine: InheritanceManagementUiStateMachine,
   private val exportToolsUiStateMachine: ExportToolsUiStateMachine,
-  private val addressVerificationHashUiStateMachine: AddressVerificationHashUiStateMachine,
-  private val verificationHashFeatureFlag: VerificationHashFeatureFlag,
+  private val proveAddressUiStateMachine: ProveAddressUiStateMachine,
+  private val proveAddressFeatureFlag: ProveAddressFeatureFlag,
   private val transactionVerificationPolicyStateMachine: TxVerificationPolicyStateMachine,
   private val privateWalletMigrationUiStateMachine: PrivateWalletMigrationUiStateMachine,
 ) : SettingsHomeUiStateMachine {
@@ -74,7 +74,7 @@ class SettingsHomeUiStateMachineImpl(
       mutableStateOf(props.settingsListState ?: ShowingAllSettingsUiState)
     }
 
-    val verificationHashEnabled = verificationHashFeatureFlag.flagValue().value.value
+    val proveAddressEnabled = proveAddressFeatureFlag.flagValue().value.value
     val isPrivateWallet = (props.account as? FullAccount)?.keybox?.isPrivateWallet == true
 
     return when (state) {
@@ -125,9 +125,9 @@ class SettingsHomeUiStateMachineImpl(
                       SettingsListUiProps.SettingsListRow.ExportTools {
                         state = ShowingExportToolsUiState
                       },
-                      SettingsListUiProps.SettingsListRow.VerificationHash {
-                        state = ShowingVerificationHashUiState
-                      }.takeIf { verificationHashEnabled && !isPrivateWallet },
+                      SettingsListUiProps.SettingsListRow.ProveAddress {
+                        state = ShowingProveAddressUiState
+                      }.takeIf { proveAddressEnabled && !isPrivateWallet },
                       SettingsListUiProps.SettingsListRow.PrivateWalletMigration {
                         state = ShowingPrivateWalletMigrationUiState
                       }
@@ -271,8 +271,8 @@ class SettingsHomeUiStateMachineImpl(
         )
       )
 
-      is ShowingVerificationHashUiState -> addressVerificationHashUiStateMachine.model(
-        AddressVerificationHashUiProps(
+      is ShowingProveAddressUiState -> proveAddressUiStateMachine.model(
+        ProveAddressUiProps(
           account = props.account as FullAccount,
           onExit = { state = ShowingAllSettingsUiState }
         )
@@ -353,7 +353,7 @@ class SettingsHomeUiStateMachineImpl(
 
     data object ShowingExportToolsUiState : SettingsListState
 
-    data object ShowingVerificationHashUiState : SettingsListState
+    data object ShowingProveAddressUiState : SettingsListState
 
     /**
      * Showing the UI for toggling/changing the Transaction Verification Policy.

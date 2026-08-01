@@ -1149,7 +1149,7 @@ message get_confirmation_result_rsp {
     upgrade_rotate_app_auth_keys_rsp upgrade_rotate_app_auth_keys_rsp = 17;
     keyset_repair_unseal_symmetric_key_rsp keyset_repair_unseal_symmetric_key_result = 18;
     keyset_repair_rotate_hw_key_rsp keyset_repair_rotate_hw_key_result = 19;
-    sign_address_verification_hash_rsp sign_address_verification_hash_result = 20;
+    sign_bip322_sighash_rsp sign_bip322_sighash_result = 20;
   }
 }
 
@@ -1358,8 +1358,8 @@ message keyset_repair_rotate_hw_key_rsp {
 // Confirmable: display address + verification message, then ECDSA-sign the provided
 // 32-byte digest with the HW spending child at change/index (EXTERNAL=0, INTERNAL=1).
 // Returns CONFIRMATION_PENDING + handles; compact 64-byte signature via
-// get_confirmation_result_rsp.sign_address_verification_hash_result.
-message sign_address_verification_hash_cmd {
+// get_confirmation_result_rsp.sign_bip322_sighash_result.
+message sign_bip322_sighash_cmd {
   bytes digest = 1 [(nanopb).max_size = 32];
   uint32 change = 2;
   uint32 address_index = 3;
@@ -1367,7 +1367,7 @@ message sign_address_verification_hash_cmd {
   string message = 5 [(nanopb).max_size = 281];
 }
 
-message sign_address_verification_hash_rsp {
+message sign_bip322_sighash_rsp {
   bytes signature = 1 [(nanopb).max_size = 64];
 }
 
@@ -1816,7 +1816,7 @@ message wallet_cmd {
     mfgtest_unlock_device_cmd mfgtest_unlock_device_cmd = 101;
     keyset_repair_unseal_symmetric_key_cmd keyset_repair_unseal_symmetric_key_cmd = 102;
     keyset_repair_rotate_hw_key_cmd keyset_repair_rotate_hw_key_cmd = 103;
-    sign_address_verification_hash_cmd sign_address_verification_hash_cmd = 104;
+    sign_bip322_sighash_cmd sign_bip322_sighash_cmd = 104;
   }
   reserved 2, 5, 14, 21, 22, 23, 24; // The deprecated old cryptography stack (key bundle, etc.)
   reserved 30, 31, 34;  // The never used create_root_key, list_recent_root_keys, and sign_hash operations
@@ -1923,13 +1923,13 @@ message wallet_rsp {
     sweep_sign_stream_start_rsp sweep_sign_stream_start_rsp = 100;
     mfgtest_unlock_device_rsp mfgtest_unlock_device_rsp = 101;
     // Fields 102, 103, 104 intentionally skipped: keyset_repair_* and
-    // sign_address_verification_hash_cmd use CONFIRMATION_PENDING global status with
+    // sign_bip322_sighash_cmd use CONFIRMATION_PENDING global status with
     // response_handle/confirmation_handle (no dedicated rsp msg).
   }
   reserved 2, 5, 14, 21, 22, 23, 24; // The deprecated old cryptography stack (key bundle, etc.)
   reserved 30, 31, 34;  // The never used create_root_key, list_recent_root_keys, and sign_hash operations
   reserved 49;  // was derive_public_key_and_sign_rsp (removed, never implemented in firmware)
-  reserved 82, 85, 89, 90, 91, 96, 102, 103, 104;  // sign_stream_finalize, lost_app_recovery_cmd, sign_challenge_and_seal_seks, recovery_authorize_lost_app/hw, upgrade_authorize_w3, keyset_repair_*, sign_address_verification_hash have no dedicated rsp; use CONFIRMATION_PENDING global status
+  reserved 82, 85, 89, 90, 91, 96, 102, 103, 104;  // sign_stream_finalize, lost_app_recovery_cmd, sign_challenge_and_seal_seks, recovery_authorize_lost_app/hw, upgrade_authorize_w3, keyset_repair_*, sign_bip322_sighash have no dedicated rsp; use CONFIRMATION_PENDING global status
 
   bytes response_handle = 9996 [(nanopb).max_size = 32];
   bytes confirmation_handle = 9997 [(nanopb).max_size = 32];

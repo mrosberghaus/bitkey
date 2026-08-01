@@ -7,7 +7,7 @@ import com.github.michaelbull.result.Result
 /**
  * User message for BIP-322 prove-address. Non-blank trimmed UTF-8, max [MAX_LENGTH] code units.
  *
- * 280 matches HW display bounds (same as verification-hash [build.wallet.bitcoin.verificationhash.VerificationMessage]).
+ * 280 matches HW display bounds for the confirmable prove-address command.
  */
 data class ProveAddressMessage private constructor(val value: String) {
   companion object {

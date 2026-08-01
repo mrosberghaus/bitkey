@@ -1,6 +1,5 @@
 package build.wallet.bitcoin.bip322
 
-import build.wallet.bitcoin.verificationhash.SpendingChildPath
 import build.wallet.di.AppScope
 import build.wallet.di.BitkeyInject
 import com.github.michaelbull.result.Err

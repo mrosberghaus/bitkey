@@ -77,7 +77,7 @@ class BitkeyW3CommandsFake(
   private val fakeHardwareStatesDao: FakeHardwareStatesDao,
   private val messageSigner: MessageSigner,
   private val signatureUtils: SignatureUtils,
-  private val fakeHwAttestationDigestSigner: FakeHwVerificationHashDigestSigner,
+  private val fakeHwBip322SighashSigner: FakeHwBip322SighashSigner,
 ) : W3NfcCommands, HardwareIdentityAwareNfcCommands, NfcCommands by w1CommandsFake {
   /**
    * Creates a standard [HardwareInteraction.ConfirmWithEmulatedPrompt] with Approve/Deny options.
@@ -689,7 +689,7 @@ class BitkeyW3CommandsFake(
   /**
    * W3 hardware requires on-device confirmation for EEK restoration unseal.
    */
-  override suspend fun signAddressVerificationHash(
+  override suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,
@@ -699,7 +699,7 @@ class BitkeyW3CommandsFake(
   ): HardwareInteraction<ByteString> {
     if (!descriptorLoaded()) throw NfcException.DescriptorNotLoaded()
     if (digest.size != 32) {
-      throw NfcException.CommandError(message = "Attestation digest must be 32 bytes")
+      throw NfcException.CommandError(message = "BIP-322 sighash must be 32 bytes")
     }
     if (change > 1u) {
       throw NfcException.CommandError(message = "Attestation change must be 0 or 1")
@@ -715,7 +715,7 @@ class BitkeyW3CommandsFake(
         val hwPub = HwSpendingPublicKey(
           fakeHardwareKeyStore.getInitialSpendingKeypair(network).publicKey.key
         )
-        fakeHwAttestationDigestSigner.sign(
+        fakeHwBip322SighashSigner.sign(
           hwPublicKey = hwPub,
           network = network,
           change = change,

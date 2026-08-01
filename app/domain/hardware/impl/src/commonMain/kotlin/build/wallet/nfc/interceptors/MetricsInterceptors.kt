@@ -330,15 +330,15 @@ private open class MetricsNfcCommands(
     commands.keysetRepairRotateHwKey(session, params)
   }
 
-  override suspend fun signAddressVerificationHash(
+  override suspend fun signBip322Sighash(
     session: NfcSession,
     digest: ByteString,
     change: UInt,
     addressIndex: UInt,
     address: String,
     message: String,
-  ) = measure("signAddressVerificationHash") {
-    commands.signAddressVerificationHash(
+  ) = measure("signBip322Sighash") {
+    commands.signBip322Sighash(
       session = session,
       digest = digest,
       change = change,

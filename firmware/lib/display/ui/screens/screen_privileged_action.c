@@ -200,9 +200,9 @@ static int calculate_total_pages(const fwpb_display_params_privileged_action* pa
       content_pages = address_display_get_page_count(&temp_widget);
       break;
     }
-    case fwpb_display_params_privileged_action_confirm_address_verification_hash_tag: {
+    case fwpb_display_params_privileged_action_confirm_bip322_sighash_tag: {
       address_display_t temp_widget;
-      address_display_init(&temp_widget, params->action.confirm_address_verification_hash.address);
+      address_display_init(&temp_widget, params->action.confirm_bip322_sighash.address);
       content_pages = address_display_get_page_count(&temp_widget) + 1;  // + message page
       break;
     }
@@ -1026,7 +1026,7 @@ static void create_page_content(int page_index) {
       create_check_button(parent);
       break;
 
-    case fwpb_display_params_privileged_action_confirm_address_verification_hash_tag: {
+    case fwpb_display_params_privileged_action_confirm_bip322_sighash_tag: {
       int address_pages = address_display_get_page_count(&address_widget);
       if (page_index < address_pages) {
         address_display_create_page(parent, &address_widget, page_index);
@@ -1036,7 +1036,7 @@ static void create_page_content(int page_index) {
         fwpb_display_params_privileged_action message_params = cached_params;
         message_params.which_action = fwpb_display_params_privileged_action_confirm_string_tag;
         strncpy(message_params.action.confirm_string.value,
-                cached_params.action.confirm_address_verification_hash.message,
+                cached_params.action.confirm_bip322_sighash.message,
                 sizeof(message_params.action.confirm_string.value) - 1);
         create_string_page(parent, &message_params);
       }
@@ -1087,9 +1087,9 @@ lv_obj_t* screen_privileged_action_init(void* ctx) {
       address_display_set_bottom_reserved(&address_widget,
                                           APPROVAL_BUTTON_SIZE + APPROVAL_BUTTON_BOTTOM_MARGIN);
       break;
-    case fwpb_display_params_privileged_action_confirm_address_verification_hash_tag:
+    case fwpb_display_params_privileged_action_confirm_bip322_sighash_tag:
       address_display_init(&address_widget,
-                           cached_params.action.confirm_address_verification_hash.address);
+                           cached_params.action.confirm_bip322_sighash.address);
       address_display_set_bottom_reserved(&address_widget,
                                           APPROVAL_BUTTON_SIZE + APPROVAL_BUTTON_BOTTOM_MARGIN);
       break;

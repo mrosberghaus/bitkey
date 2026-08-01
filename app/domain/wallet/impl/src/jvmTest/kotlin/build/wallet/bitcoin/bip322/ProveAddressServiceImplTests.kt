@@ -3,9 +3,6 @@ package build.wallet.bitcoin.bip322
 import build.wallet.bdk.bindings.BdkKeychainKind
 import build.wallet.bitcoin.BitcoinNetworkType
 import build.wallet.bitcoin.address.BitcoinAddress
-import build.wallet.bitcoin.verificationhash.CompactEcdsaSignature
-import build.wallet.bitcoin.verificationhash.SpendingChildPath
-import build.wallet.bitcoin.verificationhash.UsedScriptPubKey
 import build.wallet.encrypt.Secp256k1PublicKey
 import build.wallet.testing.shouldBeOk
 import com.github.michaelbull.result.Ok

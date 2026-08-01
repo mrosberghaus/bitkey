@@ -257,8 +257,8 @@ interface FeatureFlagsComponent {
 
   @Provides
   @SingleIn(AppScope::class)
-  fun verificationHashFeatureFlag(featureFlagDao: FeatureFlagDao) =
-    VerificationHashFeatureFlag(featureFlagDao)
+  fun proveAddressFeatureFlag(featureFlagDao: FeatureFlagDao) =
+    ProveAddressFeatureFlag(featureFlagDao)
 
   @Provides
   fun featureFlags(
@@ -311,7 +311,7 @@ interface FeatureFlagsComponent {
     defaultBitcoinDisplayUnitFeatureFlag: DefaultBitcoinDisplayUnitFeatureFlag,
     wipeHardwareLoggedOutFeatureFlag: WipeHardwareLoggedOutFeatureFlag,
     wipeOldW1DeviceFeatureFlag: WipeOldW1DeviceFeatureFlag,
-    verificationHashFeatureFlag: VerificationHashFeatureFlag,
+    proveAddressFeatureFlag: ProveAddressFeatureFlag,
   ): List<FeatureFlag<out FeatureFlagValue>> {
     return listOf(
       bdk2FeatureFlag,
@@ -361,7 +361,7 @@ interface FeatureFlagsComponent {
       defaultBitcoinDisplayUnitFeatureFlag,
       wipeHardwareLoggedOutFeatureFlag,
       wipeOldW1DeviceFeatureFlag,
-      verificationHashFeatureFlag
+      proveAddressFeatureFlag
     )
   }
 }

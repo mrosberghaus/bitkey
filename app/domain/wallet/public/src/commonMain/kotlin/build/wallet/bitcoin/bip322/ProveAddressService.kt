@@ -1,6 +1,5 @@
 package build.wallet.bitcoin.bip322
 
-import build.wallet.bitcoin.verificationhash.UsedScriptPubKey
 import com.github.michaelbull.result.Result
 
 /**

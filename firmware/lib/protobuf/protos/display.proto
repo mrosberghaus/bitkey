@@ -236,7 +236,7 @@ message display_params_privileged_action_confirm_string {
 }
 
 // Confirm Bitcoin address + verification message (address pages, then message page).
-message display_params_privileged_action_confirm_address_verification_hash {
+message display_params_privileged_action_confirm_bip322_sighash {
   string address = 1 [(nanopb).max_size = 128];
   string message = 2 [(nanopb).max_size = 281];
 }
@@ -254,7 +254,7 @@ message display_params_privileged_action {
     display_params_privileged_action_confirm_address confirm_address = 2;
     display_params_privileged_action_confirm_string confirm_string = 3;
     display_params_privileged_action_confirm_action confirm_action = 5;
-    display_params_privileged_action_confirm_address_verification_hash confirm_address_verification_hash = 7;
+    display_params_privileged_action_confirm_bip322_sighash confirm_bip322_sighash = 7;
   }
 
   // Previously used for privileged action fwup.
